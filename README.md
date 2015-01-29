@@ -1,5 +1,9 @@
-TODO:
------
+# Client (nom à déterminer)
 
-* [x] basic structure
-* [ ] test
+## Architecture
+
+![architecture](slayers-client-rendu.png)
+
+## Assets
+
+![assets](slayers-assets.png)
