@@ -24,6 +24,7 @@ UIL regroupe les différents composants suivants:
  * `libs`
  * `style`
  * `markup`
+ * `data-bindings`
 
 En terme de structure de fichiers, on pourrais mapper chaque composant
 avec un dossier à part.
@@ -67,7 +68,7 @@ qui possède plusieurs attributs intéressant:
     sur le bouton.
  * `action` qui permet de demander une action au moteur, ici ce sera quitter le jeu ou
     bien tenter de rejoindre la map sur laquelle son perso était resté lors de
-    notre dernière connection. *([liste complète](actions_uil.markdown))*
+    notre dernière connection. *([liste complète](actions_uil.md))*
 
 Maintenant on aimerait enrichir ce menu en y ajoutant la liste des amis. Cependant,
 comme on voudrait pouvoir faire la même chose sur plusieurs vue, on va introduire
@@ -85,12 +86,15 @@ va tenter d'inclure à cet endroit le template s'appelant `amis`.
 
 Il se pose donc la question de "Comment notre moteur résout-il la recherche du template
  `amis` ?". C'est actuellement très simple. Toutes les fichiers de markup sont chargées
-par le moteur avant leur affichage et durant la résolution des conflits tout les templates
-sont insérés là où il sont utilisé.
+par le moteur avant leur affichage et durant la résolution des conflits tout les
+templates sont insérés là où il sont utilisé.
 
-Un `template` se défini de la façon suivante: Il ne doit pas être à l'intérieur
-d'un tag `view`. Il peut être dans le même fichier qu'une vue ou pas (cela n'a aucune
-importance). En gros cela ressemble à ceci:
+Un `template` se défini de la façon suivante:
+ * Il ne doit pas être à l'intérieur d'un tag `view`.
+ * Il peut être dans le même fichier qu'une vue ou pas
+   (cela n'a aucune importance).
+
+En gros cela ressemble à ceci:
 
 ```xml
 <template name="amis">
@@ -98,13 +102,73 @@ importance). En gros cela ressemble à ceci:
 </template>
 ```
 
+Maintenant qu'on a une idée de comment structurer son markup et des différents
+points d'entrée, voici la liste des tags:
+
+ * `line-input` perme d'insérer du texte. Il peut avoir un id qui le permet
+    d'êter référencé après par le code rust. Exemple:
+
+    ```xml
+    <line-input id="tchat"/>
+    ```
+ * ``
+
 ## Style
 
+Tous les tags, y compris `view` et `template` supportent un attribut appelé `class`.
+Comme on pourrait s'y attendre (et de la même façon qu'en HTML), cet attribut
+contient une liste de string séparé par des espaces (ex: `class="foo bar xo"`)
+et détermine comme cet élement doit être rendu.
 
+A partir de ce point le style n'a aucune autre point d'attache avec le markup,
+uniquement cet attribut suffit.
+
+Le style est défini de la façon suivante: On défini une règle, chaque règle
+est composé d'un sélecteur est d'un ensemble de déclaration.
+
+Notons que la ressemblance avec le css est faible: nos sélecteurs sont beaucoup plus
+simple: un `.` suivis d'un identifiant (`[0-9a-zA-Z\-]+`)
+```css
+.menu-button {
+    font-size: 20px;
+    width: 200px;
+}
+```
+
+A l'intérieur des accolades on a les déclarations pour notre sélecteur.
+Chaque ligne constitue une déclaration, composé d'un identifiant `font-size` et
+d'une valeur `20px`.
+
+Les valeurs acceptées peuvent être soit des flottant avec une unité (PX
+ uniquement pour l'instant), soit une dépendance déclaré dans **Libs**.
+
+## Data bindings
+
+Attacher une donnée connu au run-time à un élément du markup se fait via les *data
+bindings*. On utilise une grammaire différente pour représenter un tel binding.
+
+Pour l'instant, on supporte uniquement un binding avec une chaine de caractère
+dans un namespace particulier.
+
+Par exemple, si l'on veut ajouter un message personnel pour le joueur un fois
+qu'il est connecté on va utiliser un `data bindings` de la façon suivante:
+
+```xml
+<view name="main">
+    <h1>Slayers Online</h1>
+    <blob>Salut {{player.name}}! Bienvenue sur {{server.name}}.</blob>
+</view>
+```
+
+Le namespace est séparé par des `.` et le dernier nom représente la variable
+qui va être lu et qui va remplacé le texte `{{player.name}}` par le nom du
+joueur connecté.
 
 ## Libs
 
-Ce composant permet de définir les dépendances sur les resources et offre un nommage pour y accéder.
+Ce composant permet de définir les dépendances sur les resources et offre un nommage
+pour y accéder.
+
 Par "resource" on inclus:
 
  * La définition d'une constante
