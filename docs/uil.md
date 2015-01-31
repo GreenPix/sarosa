@@ -26,7 +26,7 @@ UIL regroupe les différents composants suivants:
  * `markup`
  * `data-bindings`
 
-En terme de structure de fichiers, on pourrais mapper chaque composant
+En terme de dossiers et de fichiers, on pourrait mapper chaque composant
 avec un dossier à part.
 
 ## Markup (core d'UIL)
@@ -46,19 +46,19 @@ la possibilité au joueur de configurer quelques options avant de jouer et
 <view name="main">
     <h1>Slayers Online</h1>
     <group>
-        <button name="Play" goto-view="connect" action="play"/>
-        <button name="Options" goto-view="options"/>
-        <button name="Quit" action="quit"/>
+        <button goto-view="connect" action="play">Play</buttton>
+        <button goto-view="options">Options</buttton>
+        <button action="quit">Quit</buttton>
     </group>
 </view>
 ```
 
-Le premier tag que l'on voit défini une `view` nommé `main`. Tout ce qui est contenu
-dans ce tag sera rendu directement à l'écran lorsque le joueur arrivera sur cette
-`view`. Par défaut notre moteur charge la vue nommé `main`.
+Le premier tag que l'on voit défini ici est une `view` nommé `main`. Tout ce qui est
+contenu dans ce tag sera rendu directement à l'écran lorsque le joueur arrivera sur
+cette `view`. Par défaut le **Routeur** charge la vue nommé `main`.
 
 Cette vue contient un header `h1` contenant du texte. Jusque là, rien de très spécial.
-Elle contient aussi un `group`. Ce groupe permet d'aggréger des éléments mais n'a aucune
+Elle contient aussi un `group`. Ce tag permet d'aggréger des éléments mais n'a aucune
 sémantique particulière: son rôle est purement visuel et structurel.
 Son rôle visuel deviendra plus clair dans la partie sur le **Style**.
 
@@ -102,16 +102,91 @@ En gros cela ressemble à ceci:
 </template>
 ```
 
-Maintenant qu'on a une idée de comment structurer son markup et des différents
-points d'entrée, voici la liste des tags:
+### Tag list
 
- * `line-input` perme d'insérer du texte. Il peut avoir un id qui le permet
-    d'êter référencé après par le code rust. Exemple:
+#### line-input
 
-    ```xml
-    <line-input id="tchat"/>
-    ```
- * ``
+*Exemple:*
+
+```xml
+<line-input value="{{tchat.msg}}" key="{{options.keyboard.submitmsg}}"/>
+```
+
+*Contexte:* None
+
+*Attributs:*
+ - `value` représente le contenu editable de la barre.
+ - `key` représente le keyCode de la touche  sur laquelle il faut appuyer
+   pour générer un UserEvent avec ce tag. Par défaut, c'est la touche ENTER.
+
+#### progress-bar
+
+*Exemple:*
+
+```xml
+<progress-bar value="{{player.xp_pct}}"/>
+```
+
+*Contexte:* None
+
+*Attributs:*
+ - `value` représente la valeur actuelle de la progress-bar
+
+#### group
+
+*Exemple:*
+
+```xml
+<group></group>
+```
+
+*Contexte:* None
+
+*Attributs:* None
+
+#### button
+
+*Exemple:*
+
+```xml
+<button gotoview="foo" action="bar" key="A"/>
+```
+
+*Contexte:* None
+
+*Attributs:*
+ - `gotoview` contient le nom d'une vue vers laquelle on va après avoir appuyé sur `key`.
+ - `action` contient le nom d'une action parmi celle [disponible](action_uil.md).
+ - `key` contient la touche pour trigger le UserEvent. Par défaut, c'est la touche ENTER.
+
+#### template
+
+*Exemple:*
+
+```xml
+<template path="toto" class="abc"/>
+```
+
+*Contexte:* None
+
+*Attributs:*
+ - `path` contient le nom d'un template qui sera inclus à cet endroit précis.
+   On ne peut pas utiliser de data-binding ici. (Ca n'a pas de sens).
+
+#### template
+
+*Exemple:*
+
+```xml
+<template name="toto">
+      <!-- any tag from below -->
+</template>
+```
+
+*Contexte:* None
+
+*Attributs:*
+ - `name` contient et définit le nom du template. (pas de data-binding possible ici non plus)
 
 ## Style
 
