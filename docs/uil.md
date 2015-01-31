@@ -188,6 +188,26 @@ En gros cela ressemble à ceci:
 *Attributs:*
  - `name` contient et définit le nom du template. (pas de data-binding possible ici non plus)
 
+#### repeat
+
+*Exemple:*
+
+```xml
+<repeat iter="{{inventory.items}}" template-name="item"/>
+```
+
+*Contexte:* None
+
+*Attributs:*
+ - `iter` doit nécessairement être un data-binding. Internement,
+   cela correspondra à un trait `IterDataBinder`.
+ - `template-name` est le nom du template qui va être utilisé pour chaque
+   élements généré par l'iterateur précédent. De plus tout les data-bindings
+   défini dans template-name iront chercher d'abord au niveau de l'itérateur
+   avant de remonter la scope. Donc un data-binding du type `{{name}}` sera
+   équivalent sémantiquement à quelque chose comme `{{inventory.items[i].name}}`.
+   Notons que `{{<iter>[i]}}` est illégal.
+
 ## Style
 
 Tous les tags, y compris `view` et `template` supportent un attribut appelé `class`.
