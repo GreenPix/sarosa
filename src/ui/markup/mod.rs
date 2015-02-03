@@ -1,17 +1,31 @@
-
-pub mod tags;
-
+// Dependencies
 use xml::reader::EventReader;
 use xml::reader::events::*;
 use xml::attribute::OwnedAttribute;
 use std::old_io::Buffer;
 
 use std::collections::HashMap;
-use std::collections::HashSet;
 use std::str::Str;
 
 use ui::ErrorReporter;
 
+
+
+// Re-export
+
+pub use self::tags::Node;
+pub use self::tags::NodeType;
+pub use self::tags::{Template, View};
+pub use self::tags::{
+    ButtonData,
+    LineInputData,
+    ProgressBarData,
+    TemplateData,
+    RepeatData
+};
+pub use self::lib::Library;
+mod lib;
+mod tags;
 
 
 // Tag list
@@ -23,10 +37,9 @@ const LINE_INPUT_TAG: &'static str = "line-input";
 const PROGRESS_BAR_TAG: &'static str = "progress-bar";
 const REPEAT_TAG: &'static str = "repeat";
 
+
 /// Parser
 pub struct Parser<E> {
-    views: HashMap<String, tags::View>,
-    templates: HashMap<String, tags::Template>,
     err: E,
 }
 
@@ -35,33 +48,33 @@ impl<E> Parser<E> where E: ErrorReporter {
 
     pub fn new(reporter: E) -> Parser<E> {
         Parser {
-            views: HashMap::new(),
-            templates: HashMap::new(),
             err: reporter,
         }
     }
 
-    pub fn parse<B>(&self, reader: B)
+    pub fn parse<B>(&self, reader: B) -> Library
         where B: Buffer
     {
         let mut parser = EventReader::new(reader);
+        let mut views = HashMap::new();
+        let mut templates = HashMap::new();
 
         'doc: loop {
 
             match parser.next() {
-                XmlEvent::StartElement { name, .. } => {
-                    println!("{}", name.local_name);
-                    match name.local_name.as_slice() {
-                        TEMPLATE_TAG => self.parse_template_decl(&mut parser),
-                        VIEW_TAG => self.parse_view(&mut parser),
-                        _ => {
-                            self.err.log(
-                                format!("
-                                    Error: Tag {} can't be at root level,
-                                    you can only have 'template' or 'view'
-                                ", name));
-                            break 'doc;
-                        }
+                XmlEvent::StartElement { name, attributes, .. } => {
+
+                    let test_parse = self.parse_root_tag(
+                        &mut parser,
+                        &mut views,
+                        &mut templates,
+                        name.local_name.as_slice(),
+                        &attributes
+                    );
+
+                    match test_parse {
+                        Err(()) => break 'doc,
+                        _ => ()
                     }
                 }
                 XmlEvent::Error(e) => {
@@ -73,54 +86,190 @@ impl<E> Parser<E> where E: ErrorReporter {
                 _ => unreachable!(),
             }
         }
+
+        Library::new(views, templates)
     }
 
-    fn parse_view<B>(&self, parser: &mut EventReader<B>)
+    fn parse_view<B>(&self, parser: &mut EventReader<B>) -> Result<tags::View, ()>
         where B: Buffer
     {
         let mut view = tags::View::new();
 
-        self.parse_loop(VIEW_TAG, parser, &mut view);
-
-        println!("{:?}", view);
+        match self.parse_loop(VIEW_TAG, parser, &mut view) {
+            Ok(()) => Ok(view),
+            Err(()) => Err(())
+        }
     }
 
-    fn parse_template_decl<B>(&self, parser: &mut EventReader<B>)
+    fn parse_template_decl<B>(&self, parser: &mut EventReader<B>) -> Result<tags::Template, ()>
         where B: Buffer
     {
         let mut template = tags::Template::new();
 
-        self.parse_loop(TEMPLATE_TAG, parser, &mut template);
-
-        println!("{:?}", template);
+        match self.parse_loop(TEMPLATE_TAG, parser, &mut template) {
+            Ok(()) => Ok(template),
+            Err(()) => Err(())
+        }
     }
 
-    fn parse_loop<B, T>(&self,
-                        tag: &'static str,
-                        parser: &mut EventReader<B>,
-                        parent: &mut T)
-        where B: Buffer,
-              T: tags::HasNode
+    fn parse_root_tag<B>(&self,
+                         parser: &mut EventReader<B>,
+                         views: &mut HashMap<String, tags::View>,
+                         templates: &mut HashMap<String, tags::Template>,
+                         name: &str,
+                         attributes: &Vec<OwnedAttribute>) -> Result<(), ()>
+        where B: Buffer
+    {
+        match name {
+            TEMPLATE_TAG => {
+                let attr_name = lookup_name("name", &attributes);
+
+                match attr_name {
+                    None => {
+                        self.err.log(format!(
+                            "Error: Template has no name,
+                             add 'name=\"<a-name>\"' within
+                             the tag"));
+                        Err(())
+                    }
+                    Some(template_name) => {
+                        match self.parse_template_decl(parser) {
+                            Ok(template) => {
+
+                                templates.insert(template_name, template);
+                                Ok(())
+                            }
+                            Err(()) => Err(())
+                        }
+                    }
+                }
+            }
+            VIEW_TAG => {
+                match self.parse_view(parser) {
+                    Ok(view) => {
+                        let attr_name = lookup_name("name", &attributes)
+                            .unwrap_or(tags::MAIN_VIEW_NAME.to_string());
+                        views.insert(attr_name, view);
+                        Ok(())
+                    }
+                    Err(()) => Err(())
+                }
+            }
+            _ => {
+                self.err.log(
+                    format!("
+                        Error: Tag {} can't be at root level,
+                        you can only have 'template' or 'view'
+                    ", name));
+                Err(())
+            }
+        }
+    }
+
+    fn parse_tag<B>(&self,
+                    name: &str,
+                    parser: &mut EventReader<B>,
+                    attributes: &Vec<OwnedAttribute>) -> Result<Option<tags::Node>, ()>
+        where B: Buffer
+    {
+        let nodeType = match name {
+            TEMPLATE_TAG     => tags::parse_template(attributes),
+            GROUP_TAG        => Some(tags::NodeType::Group),
+            BUTTON_TAG       => tags::parse_button(attributes),
+            LINE_INPUT_TAG   => tags::parse_linput(attributes),
+            PROGRESS_BAR_TAG => tags::parse_pbar(attributes),
+            REPEAT_TAG       => tags::parse_repeat(attributes),
+            _ => {
+                self.err.log(
+                    format!("Unkown tag: {}", name)
+                );
+                None
+            }
+        };
+
+        match nodeType {
+            None => {
+                self.consume_children(name, parser);
+
+                Ok(None)
+            }
+            Some(nt) => {
+                let classes = lookup_name("class", attributes);
+                let mut node = tags::Node::new(classes, nt);
+
+                // Propagate error if needed
+                match self.parse_loop(name, parser, &mut node) {
+                    Err(()) => Err(()),
+                    Ok(()) => Ok(Some(node))
+                }
+            }
+        }
+    }
+
+
+    fn consume_children<B>(&self,
+                           tag: &str,
+                           parser: &mut EventReader<B>)
+                           -> Result<(), ()>
+        where B: Buffer
     {
         let mut depth = 1i32;
-        'out: loop {
+        loop {
             match parser.next() {
-                XmlEvent::StartElement { name, attributes, .. } => {
+                XmlEvent::StartElement { .. } => {
 
                     depth += 1;
-                    parent.add(
-                        self.parse_tag(
-                            name.local_name.as_slice(),
-                            &attributes
-                        )
-                    );
                 }
                 XmlEvent::EndElement { name } => {
 
                     depth -= 1;
                     if (name.local_name.as_slice() == tag && depth == 0) {
-                        break 'out;
+                        return Ok(());
                     }
+                }
+                XmlEvent::Error( e ) => {
+
+                    self.err.log(format!("Error: {}", e));
+                    return Err(());
+                }
+                _ => ()
+            }
+        }
+        return Ok(());
+    }
+
+    fn parse_loop<B, T>(&self,
+                        tag: &str,
+                        parser: &mut EventReader<B>,
+                        parent: &mut T)
+                        -> Result<(), ()>
+        where B: Buffer,
+              T: tags::HasNode
+    {
+        loop {
+            match parser.next() {
+                XmlEvent::StartElement { name, attributes, .. } => {
+
+                    let test_parse_child = self.parse_tag(
+                        name.local_name.as_slice(),
+                        parser,
+                        &attributes
+                    );
+
+                    match test_parse_child {
+                        // Error has been reported: stop parsing.
+                        Err(()) => return Err(()),
+                        // We're fine continue parsing.
+                        Ok(node) => {
+                            parent.add(node);
+                        }
+                    }
+                }
+                XmlEvent::EndElement { name } => {
+
+                    // TODO: remove at some point.
+                    assert_eq!(name.local_name.as_slice(), tag);
+                    return Ok(());
                 }
                 XmlEvent::Characters( text ) => {
 
@@ -134,79 +283,19 @@ impl<E> Parser<E> where E: ErrorReporter {
                 XmlEvent::Error( e ) => {
 
                     self.err.log(format!("Error: {}", e));
-                    break 'out;
+                    return Err(());
                 }
+                XmlEvent::EndDocument => unreachable!(),
                 _ => ()
             }
         }
-    }
-
-    fn parse_tag(&self,
-                 name: &str,
-                 attributes: &Vec<OwnedAttribute>) -> Option<tags::Node>
-    {
-        let nodeType = match name {
-            TEMPLATE_TAG     => tags::NodeType::Template(parse_template(attributes)),
-            GROUP_TAG        => tags::NodeType::Group,
-            BUTTON_TAG       => tags::NodeType::Button(parse_button(attributes)),
-            LINE_INPUT_TAG   => tags::NodeType::LineInput(parse_linput(attributes)),
-            PROGRESS_BAR_TAG => tags::NodeType::ProgressBar(parse_pbar(attributes)),
-            REPEAT_TAG       => tags::NodeType::Repeat(parse_repeat(attributes)),
-            _ => {
-                self.err.log(
-                    format!("Unkown tag: {}", name)
-                );
-                tags::NodeType::None
-            }
-        };
-
-        let classes = lookup_name("class", attributes);
-
-        if (nodeType == tags::NodeType::None) {
-            None
-        } else {
-            Some(tags::Node::new(classes, nodeType))
-        }
+        return Ok(())
     }
 }
 
 // ======================================== //
 //                  HELPERS                 //
 // ======================================== //
-
-fn parse_template(attributes: &Vec<OwnedAttribute>) -> tags::TemplateData {
-    tags::TemplateData {
-        path: lookup_name("path", attributes)
-    }
-}
-
-fn parse_button(attributes: &Vec<OwnedAttribute>) -> tags::ButtonData {
-    tags::ButtonData {
-        gotoview: lookup_name("goto-view", attributes),
-        action: lookup_name("action", attributes),
-        key: lookup_name("key", attributes),
-    }
-}
-
-fn parse_linput(attributes: &Vec<OwnedAttribute>) -> tags::LineInputData {
-    tags::LineInputData {
-        value: lookup_name("value", attributes),
-        key: lookup_name("key", attributes),
-    }
-}
-
-fn parse_pbar(attributes: &Vec<OwnedAttribute>) -> tags::ProgressBarData {
-    tags::ProgressBarData {
-        value: lookup_name("value", attributes)
-    }
-}
-
-fn parse_repeat(attributes: &Vec<OwnedAttribute>) -> tags::RepeatData {
-    tags::RepeatData {
-        templateName: lookup_name("template-name", attributes),
-        iter: lookup_name("iter", attributes)
-    }
-}
 
 fn lookup_name<'a>(name: &'a str,
                    attributes: &Vec<OwnedAttribute>)
