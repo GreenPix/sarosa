@@ -44,6 +44,7 @@ pub struct Parser<E> {
 }
 
 
+
 impl<E> Parser<E> where E: ErrorReporter {
 
     pub fn new(reporter: E) -> Parser<E> {
@@ -126,11 +127,11 @@ impl<E> Parser<E> where E: ErrorReporter {
 
                 match attr_name {
                     None => {
-                        self.err.log(format!(
-                            "Error: Template has no name,
-                             add 'name=\"<a-name>\"' within
-                             the tag"));
-                        Err(())
+                        self.err.log(
+                            "Template has no name add a name\
+                             attribute 'name=\"<a-name>\"'".to_string()
+                        );
+                        Ok(())
                     }
                     Some(template_name) => {
                         match self.parse_template_decl(parser) {
@@ -156,11 +157,12 @@ impl<E> Parser<E> where E: ErrorReporter {
                 }
             }
             _ => {
+                let (row, col) = parser.get_cursor();
                 self.err.log(
-                    format!("
-                        Error: Tag {} can't be at root level,
-                        you can only have 'template' or 'view'
-                    ", name));
+                    format!(
+                        "Error {}:{} : Tag `{}` can't be at root level, \
+                        you can only have `template` or `view`"
+                    , row, col, name));
                 Err(())
             }
         }
@@ -180,8 +182,9 @@ impl<E> Parser<E> where E: ErrorReporter {
             PROGRESS_BAR_TAG => tags::parse_pbar(attributes),
             REPEAT_TAG       => tags::parse_repeat(attributes),
             _ => {
+                let (row, col) = parser.get_cursor();
                 self.err.log(
-                    format!("Unkown tag: {}", name)
+                    format!("Warning {}:{} : Unkown tag `{}`", row, col, name)
                 );
                 None
             }
@@ -291,6 +294,7 @@ impl<E> Parser<E> where E: ErrorReporter {
         }
         return Ok(())
     }
+
 }
 
 // ======================================== //
