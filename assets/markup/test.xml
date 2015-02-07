@@ -6,6 +6,7 @@
     </group>
 </view>
 <template test="allo">
+    <group></group>
 </template>
 <template name="allo">
     Yo men !

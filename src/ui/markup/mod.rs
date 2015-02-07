@@ -173,9 +173,9 @@ impl<E, B> Parser<E, B>
                 let (row, col) = self.parser.get_cursor();
                 self.err.log(
                     format!(
-                        "Warning {}:{} : Tag `{}` can't be at root level, \
+                        "Warning {}:{} : `{}` can't be at root level, \
                         you can only have `template` or `view`"
-                    , row, col, name));
+                    , row+1, col+1, name));
 
                 match self.consume_children(name) {
                     Err(parse_err) => Err(parse_err),
@@ -190,6 +190,8 @@ impl<E, B> Parser<E, B>
                  attributes: &Vec<OwnedAttribute>)
                  -> Result<Option<tags::Node>, ParseError>
     {
+        let ignore_child = name == TEMPLATE_TAG;
+
         let node_type = match name {
             TEMPLATE_TAG     => tags::parse_template(attributes),
             GROUP_TAG        => Ok(tags::NodeType::Group),
@@ -200,7 +202,7 @@ impl<E, B> Parser<E, B>
             _ => {
                 let (row, col) = self.parser.get_cursor();
                 self.err.log(
-                    format!("Warning {}:{} : Unkown tag `{}`", row, col, name)
+                    format!("Warning {}:{} : Unknown tag `{}`", row+1, col+1, name)
                 );
                 Err((ErrorType::Warning, ErrorStatus::Reported))
             }
@@ -224,10 +226,21 @@ impl<E, B> Parser<E, B>
                 let classes = lookup_name("class", attributes);
                 let mut node = tags::Node::new(classes, nt);
 
-                // Propagate error if needed
-                match self.parse_loop(name, &mut node) {
-                    Ok(()) => Ok(Some(node)),
-                    Err(reported_error) => Err(reported_error),
+                if ignore_child {
+
+                    // Consume children
+                    match self.consume_children(name) {
+                        Ok(()) => Ok(Some(node)),
+                        Err(reported_error) => Err(reported_error),
+                    }
+
+                } else {
+
+                    // Parse children
+                    match self.parse_loop(name, &mut node) {
+                        Ok(()) => Ok(Some(node)),
+                        Err(reported_error) => Err(reported_error),
+                    }
                 }
             }
         }
@@ -240,13 +253,13 @@ impl<E, B> Parser<E, B>
         match parse_error {
             (ErrorType::Fatal, ErrorStatus::NotReported(msg)) => {
                 self.err.log(
-                    format!("Fatal {}:{} : {}", row, col, msg)
+                    format!("Error {}:{} : {}", row+1, col+1, msg)
                 );
                 (ErrorType::Fatal, ErrorStatus::Reported)
             }
             (ErrorType::Warning, ErrorStatus::NotReported(msg)) => {
                 self.err.log(
-                    format!("Warning {}:{} : {}", row, col, msg)
+                    format!("Warning {}:{} : {}", row+1, col+1, msg)
                 );
                 (ErrorType::Warning, ErrorStatus::Reported)
             }
@@ -261,9 +274,15 @@ impl<E, B> Parser<E, B>
         let mut depth = 1i32;
         loop {
             match self.parser.next() {
-                XmlEvent::StartElement { .. } => {
+                XmlEvent::StartElement { name, .. } => {
 
                     depth += 1;
+
+                    let (row, col) = self.parser.get_cursor();
+                    self.err.log(
+                        format!("Warning {}:{}, `{}` has been ignored",
+                                row+1, col+1, name)
+                    );
                 }
                 XmlEvent::EndElement { name } => {
 
