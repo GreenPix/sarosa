@@ -2,7 +2,8 @@
 use xml::attribute::OwnedAttribute;
 use std::collections::HashSet;
 
-
+use super::ErrorType;
+use super::ErrorStatus;
 
 // Name for the "main" view.
 pub const MAIN_VIEW_NAME: &'static str = "main";
@@ -103,6 +104,9 @@ impl HasNode for View {
     }
 }
 
+// To help readability:
+type ResOrError = Result<NodeType, super::ParseError>;
+
 // ------------------------------------------------- Button tag
 #[derive(PartialEq, Debug)]
 pub struct ButtonData {
@@ -111,8 +115,8 @@ pub struct ButtonData {
     pub key: Option<String>,
 }
 
-pub fn parse_button(attributes: &Vec<OwnedAttribute>) -> Option<NodeType> {
-    Some(NodeType::Button(ButtonData {
+pub fn parse_button(attributes: &Vec<OwnedAttribute>) -> ResOrError {
+    Ok(NodeType::Button(ButtonData {
         gotoview: super::lookup_name("goto-view", attributes),
         action: super::lookup_name("action", attributes),
         key: super::lookup_name("key", attributes),
@@ -126,8 +130,8 @@ pub struct LineInputData {
     pub key: Option<String>,
 }
 
-pub fn parse_linput(attributes: &Vec<OwnedAttribute>) -> Option<NodeType> {
-    Some(NodeType::LineInput(LineInputData {
+pub fn parse_linput(attributes: &Vec<OwnedAttribute>) -> ResOrError {
+    Ok(NodeType::LineInput(LineInputData {
         value: super::lookup_name("value", attributes),
         key: super::lookup_name("key", attributes),
     }))
@@ -139,8 +143,8 @@ pub struct ProgressBarData {
     pub value: Option<String>
 }
 
-pub fn parse_pbar(attributes: &Vec<OwnedAttribute>) -> Option<NodeType> {
-    Some(NodeType::ProgressBar(ProgressBarData {
+pub fn parse_pbar(attributes: &Vec<OwnedAttribute>) -> ResOrError {
+    Ok(NodeType::ProgressBar(ProgressBarData {
         value: super::lookup_name("value", attributes)
     }))
 }
@@ -148,25 +152,57 @@ pub fn parse_pbar(attributes: &Vec<OwnedAttribute>) -> Option<NodeType> {
 // ------------------------------------------------- Template tag
 #[derive(PartialEq, Debug)]
 pub struct TemplateData {
-    pub path: Option<String>,
+    pub path: String,
 }
 
-pub fn parse_template(attributes: &Vec<OwnedAttribute>) -> Option<NodeType> {
-    Some(NodeType::Template(TemplateData {
-        path: super::lookup_name("path", attributes)
-    }))
+pub fn parse_template(attributes: &Vec<OwnedAttribute>) -> ResOrError {
+    match super::lookup_name("path", attributes) {
+        Some(path) => {
+            Ok(NodeType::Template(TemplateData {
+                path: path
+            }))
+        }
+        None => {
+            Err((
+                ErrorType::Warning,
+                ErrorStatus::NotReported(
+                    "`path` attribute in `template` is missing")
+            ))
+        }
+    }
 }
 
 // ------------------------------------------------- Repeat tag
 #[derive(PartialEq, Debug)]
 pub struct RepeatData {
-    pub template_name: Option<String>,
-    pub iter: Option<String>,
+    pub template_name: String,
+    pub iter: String,
 }
 
-pub fn parse_repeat(attributes: &Vec<OwnedAttribute>) -> Option<NodeType> {
-    Some(NodeType::Repeat(RepeatData {
-        template_name: super::lookup_name("template-name", attributes),
-        iter: super::lookup_name("iter", attributes)
-    }))
+pub fn parse_repeat(attributes: &Vec<OwnedAttribute>) -> ResOrError {
+
+    match (super::lookup_name("template-name", attributes),
+           super::lookup_name("iter", attributes))
+    {
+        (Some(name), Some(iter)) => {
+            Ok(NodeType::Repeat(RepeatData {
+                template_name: name,
+                iter: iter
+            }))
+        }
+        (None, _) => {
+            Err((
+                ErrorType::Warning,
+                ErrorStatus::NotReported(
+                    "`template-name` attribute in `repeat` is missing")
+            ))
+        }
+        (_, None) => {
+            Err((
+                ErrorType::Warning,
+                ErrorStatus::NotReported(
+                    "`iter` attribute in `repeat` is missing")
+            ))
+        }
+    }
 }

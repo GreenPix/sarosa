@@ -44,7 +44,17 @@ pub struct Parser<E, B> {
     parser: EventReader<B>,
 }
 
+enum ErrorStatus {
+    NotReported(&'static str),
+    Reported,
+}
 
+enum ErrorType {
+    Fatal,
+    Warning,
+}
+
+type ParseError = (ErrorType, ErrorStatus);
 
 impl<E, B> Parser<E, B>
     where E: ErrorReporter,
@@ -76,7 +86,7 @@ impl<E, B> Parser<E, B>
                     );
 
                     match test_parse {
-                        Err(()) => break 'doc,
+                        Err((ErrorType::Fatal, _)) => break 'doc,
                         _ => ()
                     }
                 }
@@ -93,23 +103,23 @@ impl<E, B> Parser<E, B>
         Library::new(views, templates)
     }
 
-    fn parse_view(&mut self) -> Result<tags::View, ()>
+    fn parse_view(&mut self) -> Result<tags::View, ParseError>
     {
         let mut view = tags::View::new();
 
         match self.parse_loop(VIEW_TAG, &mut view) {
             Ok(()) => Ok(view),
-            Err(()) => Err(())
+            Err(error_reported) => Err(error_reported)
         }
     }
 
-    fn parse_template_decl(&mut self) -> Result<tags::Template, ()>
+    fn parse_template_decl(&mut self) -> Result<tags::Template, ParseError>
     {
         let mut template = tags::Template::new();
 
         match self.parse_loop(TEMPLATE_TAG, &mut template) {
             Ok(()) => Ok(template),
-            Err(()) => Err(())
+            Err(error_reported) => Err(error_reported)
         }
     }
 
@@ -117,7 +127,7 @@ impl<E, B> Parser<E, B>
                       views: &mut HashMap<String, tags::View>,
                       templates: &mut HashMap<String, tags::Template>,
                       name: &str,
-                      attributes: &Vec<OwnedAttribute>) -> Result<(), ()>
+                      attributes: &Vec<OwnedAttribute>) -> Result<(), ParseError>
     {
         match name {
             TEMPLATE_TAG => {
@@ -125,11 +135,18 @@ impl<E, B> Parser<E, B>
 
                 match attr_name {
                     None => {
+                        let (row, col) = self.parser.get_cursor();
                         self.err.log(
-                            "Template has no name add a name\
-                             attribute 'name=\"<a-name>\"'".to_string()
+                            format!(
+                                "Warning {}:{} : `template` has no name add an \
+                                 attribute 'name=\"<a-name>\"'",
+                            row, col)
                         );
-                        Ok(())
+
+                        match self.consume_children(name) {
+                            Err(parse_err) => Err(parse_err),
+                            Ok(()) => Ok(())
+                        }
                     }
                     Some(template_name) => {
                         match self.parse_template_decl() {
@@ -138,7 +155,7 @@ impl<E, B> Parser<E, B>
                                 templates.insert(template_name, template);
                                 Ok(())
                             }
-                            Err(()) => Err(())
+                            Err(error_reported) => Err(error_reported)
                         }
                     }
                 }
@@ -151,28 +168,33 @@ impl<E, B> Parser<E, B>
                         views.insert(attr_name, view);
                         Ok(())
                     }
-                    Err(()) => Err(())
+                    Err(error_reported) => Err(error_reported)
                 }
             }
             _ => {
                 let (row, col) = self.parser.get_cursor();
                 self.err.log(
                     format!(
-                        "Error {}:{} : Tag `{}` can't be at root level, \
+                        "Warning {}:{} : Tag `{}` can't be at root level, \
                         you can only have `template` or `view`"
                     , row, col, name));
-                Err(())
+
+                match self.consume_children(name) {
+                    Err(parse_err) => Err(parse_err),
+                    Ok(()) => Ok(())
+                }
             }
         }
     }
 
     fn parse_tag(&mut self,
                  name: &str,
-                 attributes: &Vec<OwnedAttribute>) -> Result<Option<tags::Node>, ()>
+                 attributes: &Vec<OwnedAttribute>)
+                 -> Result<Option<tags::Node>, ParseError>
     {
         let node_type = match name {
             TEMPLATE_TAG     => tags::parse_template(attributes),
-            GROUP_TAG        => Some(tags::NodeType::Group),
+            GROUP_TAG        => Ok(tags::NodeType::Group),
             BUTTON_TAG       => tags::parse_button(attributes),
             LINE_INPUT_TAG   => tags::parse_linput(attributes),
             PROGRESS_BAR_TAG => tags::parse_pbar(attributes),
@@ -182,32 +204,61 @@ impl<E, B> Parser<E, B>
                 self.err.log(
                     format!("Warning {}:{} : Unkown tag `{}`", row, col, name)
                 );
-                None
+                Err((ErrorType::Warning, ErrorStatus::Reported))
             }
         };
 
         match node_type {
-            None => {
-                match self.consume_children(name) {
-                    Err(()) => Err(()),
-                    Ok(()) => Ok(None)
+            Err(parse_error) => {
+                match self.report_error_if_needed(parse_error) {
+                    (ErrorType::Warning, _) => {
+                        match self.consume_children(name) {
+                            Err(parse_err) =>
+                                Err(self.report_error_if_needed(parse_err)),
+                            Ok(()) =>
+                                Ok(None)
+                        }
+                    },
+                    reported_parse_error => Err(reported_parse_error)
                 }
             }
-            Some(nt) => {
+            Ok(nt) => {
                 let classes = lookup_name("class", attributes);
                 let mut node = tags::Node::new(classes, nt);
 
                 // Propagate error if needed
                 match self.parse_loop(name, &mut node) {
-                    Err(()) => Err(()),
-                    Ok(()) => Ok(Some(node))
+                    Ok(()) => Ok(Some(node)),
+                    Err(reported_error) => Err(reported_error),
                 }
             }
         }
     }
 
+    fn report_error_if_needed(&mut self,
+                              parse_error: ParseError) -> ParseError
+    {
+        let (row, col) = self.parser.get_cursor();
+        match parse_error {
+            (ErrorType::Fatal, ErrorStatus::NotReported(msg)) => {
+                self.err.log(
+                    format!("Fatal {}:{} : {}", row, col, msg)
+                );
+                (ErrorType::Fatal, ErrorStatus::Reported)
+            }
+            (ErrorType::Warning, ErrorStatus::NotReported(msg)) => {
+                self.err.log(
+                    format!("Warning {}:{} : {}", row, col, msg)
+                );
+                (ErrorType::Warning, ErrorStatus::Reported)
+            }
+            _ => parse_error
+        }
+    }
 
-    fn consume_children(&mut self, tag: &str) -> Result<(), ()>
+    // This function may only return Ok(()) or
+    // Err((ErrorType::Fatal, ErrorStatus::Reported)).
+    fn consume_children(&mut self, tag: &str) -> Result<(), ParseError>
     {
         let mut depth = 1i32;
         loop {
@@ -226,7 +277,7 @@ impl<E, B> Parser<E, B>
                 XmlEvent::Error( e ) => {
 
                     self.err.log(format!("Error: {}", e));
-                    return Err(());
+                    return Err((ErrorType::Fatal, ErrorStatus::Reported));
                 }
                 _ => ()
             }
@@ -236,7 +287,7 @@ impl<E, B> Parser<E, B>
     fn parse_loop<T>(&mut self,
                      tag: &str,
                      parent: &mut T)
-                     -> Result<(), ()>
+                     -> Result<(), ParseError>
         where T: tags::HasNode
     {
         loop {
@@ -249,12 +300,12 @@ impl<E, B> Parser<E, B>
                     );
 
                     match test_parse_child {
-                        // Error has been reported: stop parsing.
-                        Err(()) => return Err(()),
                         // We're fine continue parsing.
                         Ok(node) => {
                             parent.add(node);
-                        }
+                        },
+                        // Error has been reported: stop parsing.
+                        Err(reported_error) => return Err(reported_error),
                     }
                 }
                 XmlEvent::EndElement { name } => {
@@ -275,7 +326,7 @@ impl<E, B> Parser<E, B>
                 XmlEvent::Error( e ) => {
 
                     self.err.log(format!("Error: {}", e));
-                    return Err(());
+                    return Err((ErrorType::Fatal, ErrorStatus::Reported));
                 }
                 XmlEvent::EndDocument => unreachable!(),
                 _ => ()
