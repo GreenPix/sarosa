@@ -10,7 +10,7 @@ fn main() {
     let file = File::open(&Path::new("assets/markup/test.xml")).unwrap();
     let reader = BufferedReader::new(file);
 
-    let parser = ui::markup::Parser::new(ui::StdOutErrorReporter);
+    let mut parser = ui::markup::Parser::new(ui::StdOutErrorReporter, reader);
 
-    parser.parse(reader);
+    parser.parse();
 }

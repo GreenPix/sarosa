@@ -39,34 +39,36 @@ const REPEAT_TAG: &'static str = "repeat";
 
 
 /// Parser
-pub struct Parser<E> {
+pub struct Parser<E, B> {
     err: E,
+    parser: EventReader<B>,
 }
 
 
 
-impl<E> Parser<E> where E: ErrorReporter {
+impl<E, B> Parser<E, B>
+    where E: ErrorReporter,
+          B: Buffer
+{
 
-    pub fn new(reporter: E) -> Parser<E> {
+    pub fn new(reporter: E, reader: B) -> Parser<E, B> {
         Parser {
             err: reporter,
+            parser: EventReader::new(reader)
         }
     }
 
-    pub fn parse<B>(&self, reader: B) -> Library
-        where B: Buffer
+    pub fn parse(&mut self) -> Library
     {
-        let mut parser = EventReader::new(reader);
         let mut views = HashMap::new();
         let mut templates = HashMap::new();
 
         'doc: loop {
 
-            match parser.next() {
+            match self.parser.next() {
                 XmlEvent::StartElement { name, attributes, .. } => {
 
                     let test_parse = self.parse_root_tag(
-                        &mut parser,
                         &mut views,
                         &mut templates,
                         &name.local_name,
@@ -91,35 +93,31 @@ impl<E> Parser<E> where E: ErrorReporter {
         Library::new(views, templates)
     }
 
-    fn parse_view<B>(&self, parser: &mut EventReader<B>) -> Result<tags::View, ()>
-        where B: Buffer
+    fn parse_view(&mut self) -> Result<tags::View, ()>
     {
         let mut view = tags::View::new();
 
-        match self.parse_loop(VIEW_TAG, parser, &mut view) {
+        match self.parse_loop(VIEW_TAG, &mut view) {
             Ok(()) => Ok(view),
             Err(()) => Err(())
         }
     }
 
-    fn parse_template_decl<B>(&self, parser: &mut EventReader<B>) -> Result<tags::Template, ()>
-        where B: Buffer
+    fn parse_template_decl(&mut self) -> Result<tags::Template, ()>
     {
         let mut template = tags::Template::new();
 
-        match self.parse_loop(TEMPLATE_TAG, parser, &mut template) {
+        match self.parse_loop(TEMPLATE_TAG, &mut template) {
             Ok(()) => Ok(template),
             Err(()) => Err(())
         }
     }
 
-    fn parse_root_tag<B>(&self,
-                         parser: &mut EventReader<B>,
-                         views: &mut HashMap<String, tags::View>,
-                         templates: &mut HashMap<String, tags::Template>,
-                         name: &str,
-                         attributes: &Vec<OwnedAttribute>) -> Result<(), ()>
-        where B: Buffer
+    fn parse_root_tag(&mut self,
+                      views: &mut HashMap<String, tags::View>,
+                      templates: &mut HashMap<String, tags::Template>,
+                      name: &str,
+                      attributes: &Vec<OwnedAttribute>) -> Result<(), ()>
     {
         match name {
             TEMPLATE_TAG => {
@@ -134,7 +132,7 @@ impl<E> Parser<E> where E: ErrorReporter {
                         Ok(())
                     }
                     Some(template_name) => {
-                        match self.parse_template_decl(parser) {
+                        match self.parse_template_decl() {
                             Ok(template) => {
 
                                 templates.insert(template_name, template);
@@ -146,7 +144,7 @@ impl<E> Parser<E> where E: ErrorReporter {
                 }
             }
             VIEW_TAG => {
-                match self.parse_view(parser) {
+                match self.parse_view() {
                     Ok(view) => {
                         let attr_name = lookup_name("name", attributes)
                             .unwrap_or(tags::MAIN_VIEW_NAME.to_string());
@@ -157,7 +155,7 @@ impl<E> Parser<E> where E: ErrorReporter {
                 }
             }
             _ => {
-                let (row, col) = parser.get_cursor();
+                let (row, col) = self.parser.get_cursor();
                 self.err.log(
                     format!(
                         "Error {}:{} : Tag `{}` can't be at root level, \
@@ -168,11 +166,9 @@ impl<E> Parser<E> where E: ErrorReporter {
         }
     }
 
-    fn parse_tag<B>(&self,
-                    name: &str,
-                    parser: &mut EventReader<B>,
-                    attributes: &Vec<OwnedAttribute>) -> Result<Option<tags::Node>, ()>
-        where B: Buffer
+    fn parse_tag(&mut self,
+                 name: &str,
+                 attributes: &Vec<OwnedAttribute>) -> Result<Option<tags::Node>, ()>
     {
         let node_type = match name {
             TEMPLATE_TAG     => tags::parse_template(attributes),
@@ -182,7 +178,7 @@ impl<E> Parser<E> where E: ErrorReporter {
             PROGRESS_BAR_TAG => tags::parse_pbar(attributes),
             REPEAT_TAG       => tags::parse_repeat(attributes),
             _ => {
-                let (row, col) = parser.get_cursor();
+                let (row, col) = self.parser.get_cursor();
                 self.err.log(
                     format!("Warning {}:{} : Unkown tag `{}`", row, col, name)
                 );
@@ -192,7 +188,7 @@ impl<E> Parser<E> where E: ErrorReporter {
 
         match node_type {
             None => {
-                match self.consume_children(name, parser) {
+                match self.consume_children(name) {
                     Err(()) => Err(()),
                     Ok(()) => Ok(None)
                 }
@@ -202,7 +198,7 @@ impl<E> Parser<E> where E: ErrorReporter {
                 let mut node = tags::Node::new(classes, nt);
 
                 // Propagate error if needed
-                match self.parse_loop(name, parser, &mut node) {
+                match self.parse_loop(name, &mut node) {
                     Err(()) => Err(()),
                     Ok(()) => Ok(Some(node))
                 }
@@ -211,15 +207,11 @@ impl<E> Parser<E> where E: ErrorReporter {
     }
 
 
-    fn consume_children<B>(&self,
-                           tag: &str,
-                           parser: &mut EventReader<B>)
-                           -> Result<(), ()>
-        where B: Buffer
+    fn consume_children(&mut self, tag: &str) -> Result<(), ()>
     {
         let mut depth = 1i32;
         loop {
-            match parser.next() {
+            match self.parser.next() {
                 XmlEvent::StartElement { .. } => {
 
                     depth += 1;
@@ -241,21 +233,18 @@ impl<E> Parser<E> where E: ErrorReporter {
         }
     }
 
-    fn parse_loop<B, T>(&self,
-                        tag: &str,
-                        parser: &mut EventReader<B>,
-                        parent: &mut T)
-                        -> Result<(), ()>
-        where B: Buffer,
-              T: tags::HasNode
+    fn parse_loop<T>(&mut self,
+                     tag: &str,
+                     parent: &mut T)
+                     -> Result<(), ()>
+        where T: tags::HasNode
     {
         loop {
-            match parser.next() {
+            match self.parser.next() {
                 XmlEvent::StartElement { name, attributes, .. } => {
 
                     let test_parse_child = self.parse_tag(
                         &name.local_name,
-                        parser,
                         &attributes
                     );
 
