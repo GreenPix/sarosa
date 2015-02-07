@@ -21,19 +21,19 @@ pub enum NodeType {
 
 #[derive(Debug)]
 pub struct Node {
-    children: Vec<Node>,
+    pub children: Vec<Node>,
     classes: Option<String>,
     node_type: NodeType,
 }
 
 #[derive(Debug)]
 pub struct Template {
-    children: Vec<Node>,
+    pub children: Vec<Node>,
 }
 
 #[derive(Debug)]
 pub struct View {
-    children: Vec<Node>,
+    pub children: Vec<Node>,
 }
 
 impl Node {

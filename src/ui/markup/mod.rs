@@ -8,8 +8,6 @@ use std::collections::HashMap;
 
 use ui::ErrorReporter;
 
-
-
 // Re-export
 
 pub use self::tags::Node;
@@ -347,4 +345,102 @@ fn lookup_name<'a>(name: &'a str,
     attributes.iter()
         .find(|ref attribute| attribute.name.local_name == name)
         .map(|ref attribute| attribute.value.clone())
+}
+
+
+#[cfg(test)]
+mod tests {
+
+    use std::old_io::BufferedReader;
+    use ui::EmptyErrorReporter;
+
+    #[test]
+    fn reject_invalid_root_tags() {
+        let reader = BufferedReader::new("<test></test>".as_bytes());
+        let mut parser = super::Parser::new(EmptyErrorReporter, reader);
+
+        let res = parser.parse();
+        assert_eq!(res.views.len(), 0);
+        assert_eq!(res.templates.len(), 0);
+    }
+
+    #[test]
+    fn ignore_unknown_tags() {
+        let reader = BufferedReader::new(
+            "<view>\
+                <toto />\
+                <h1>Test</h1>\
+             </view>
+            ".as_bytes());
+        let mut parser = super::Parser::new(EmptyErrorReporter, reader);
+
+        let res = parser.parse();
+
+        assert_eq!(res.views.len(), 1);
+        assert_eq!(res.views.values().next().unwrap().children.len(), 0);
+        assert_eq!(res.templates.len(), 0);
+    }
+
+    #[test]
+    fn reject_unnamed_template() {
+        let reader = BufferedReader::new(
+            "<template>\
+                <toto />\
+             </template>
+            ".as_bytes());
+        let mut parser = super::Parser::new(EmptyErrorReporter, reader);
+
+        let res = parser.parse();
+
+        assert_eq!(res.views.len(), 0);
+        assert_eq!(res.templates.len(), 0);
+    }
+
+    #[test]
+    fn ignore_ill_formed_repeat_1() {
+        let reader = BufferedReader::new(
+            "<view>\
+                <repeat template-name=\"test\"/>\
+             </view>
+            ".as_bytes());
+        let mut parser = super::Parser::new(EmptyErrorReporter, reader);
+
+        let res = parser.parse();
+
+        assert_eq!(res.views.len(), 1);
+        assert_eq!(res.views.values().next().unwrap().children.len(), 0);
+        assert_eq!(res.templates.len(), 0);
+    }
+
+    #[test]
+    fn ignore_ill_formed_repeat_2() {
+        let reader = BufferedReader::new(
+            "<view>\
+                <repeat iter=\"{test}\"/>\
+             </view>
+            ".as_bytes());
+        let mut parser = super::Parser::new(EmptyErrorReporter, reader);
+
+        let res = parser.parse();
+
+        assert_eq!(res.views.len(), 1);
+        assert_eq!(res.views.values().next().unwrap().children.len(), 0);
+        assert_eq!(res.templates.len(), 0);
+    }
+
+    #[test]
+    fn accept_well_formed_repeat() {
+        let reader = BufferedReader::new(
+            "<view>\
+                <repeat iter=\"{arf}\" template-name=\"test\"/>\
+             </view>
+            ".as_bytes());
+        let mut parser = super::Parser::new(EmptyErrorReporter, reader);
+
+        let res = parser.parse();
+
+        assert_eq!(res.views.len(), 1);
+        assert_eq!(res.views.values().next().unwrap().children.len(), 1);
+        assert_eq!(res.templates.len(), 0);
+    }
 }

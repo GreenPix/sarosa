@@ -5,8 +5,8 @@ use ui::markup::tags;
 
 // Library
 pub struct Library {
-    views: HashMap<String, tags::View>,
-    templates: HashMap<String, tags::Template>,
+    pub views: HashMap<String, tags::View>,
+    pub templates: HashMap<String, tags::Template>,
 }
 
 impl Library {
@@ -15,6 +15,16 @@ impl Library {
         Library {
             views: views,
             templates: templates
+        }
+    }
+
+    pub fn merge(&mut self, other: Library) {
+        for (key, val) in other.views.into_iter() {
+            self.views.insert(key, val);
+        }
+
+        for (key, val) in other.templates.into_iter() {
+            self.templates.insert(key, val);
         }
     }
 }
