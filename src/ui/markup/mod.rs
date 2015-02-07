@@ -123,7 +123,7 @@ impl<E> Parser<E> where E: ErrorReporter {
     {
         match name {
             TEMPLATE_TAG => {
-                let attr_name = lookup_name("name", &attributes);
+                let attr_name = lookup_name("name", attributes);
 
                 match attr_name {
                     None => {
@@ -148,7 +148,7 @@ impl<E> Parser<E> where E: ErrorReporter {
             VIEW_TAG => {
                 match self.parse_view(parser) {
                     Ok(view) => {
-                        let attr_name = lookup_name("name", &attributes)
+                        let attr_name = lookup_name("name", attributes)
                             .unwrap_or(tags::MAIN_VIEW_NAME.to_string());
                         views.insert(attr_name, view);
                         Ok(())
