@@ -5,3 +5,8 @@
         <button class="btn-quit" action="quit">Quitter</button>
     </group>
 </view>
+<template name="allo">
+    Yo men !
+</template>
+<test>
+</test>

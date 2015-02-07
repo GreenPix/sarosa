@@ -5,7 +5,6 @@ use xml::attribute::OwnedAttribute;
 use std::old_io::Buffer;
 
 use std::collections::HashMap;
-use std::str::Str;
 
 use ui::ErrorReporter;
 
@@ -24,6 +23,7 @@ pub use self::tags::{
     RepeatData
 };
 pub use self::lib::Library;
+
 mod lib;
 mod tags;
 
@@ -69,7 +69,7 @@ impl<E> Parser<E> where E: ErrorReporter {
                         &mut parser,
                         &mut views,
                         &mut templates,
-                        name.local_name.as_slice(),
+                        &name.local_name,
                         &attributes
                     );
 
@@ -174,7 +174,7 @@ impl<E> Parser<E> where E: ErrorReporter {
                     attributes: &Vec<OwnedAttribute>) -> Result<Option<tags::Node>, ()>
         where B: Buffer
     {
-        let nodeType = match name {
+        let node_type = match name {
             TEMPLATE_TAG     => tags::parse_template(attributes),
             GROUP_TAG        => Some(tags::NodeType::Group),
             BUTTON_TAG       => tags::parse_button(attributes),
@@ -190,11 +190,12 @@ impl<E> Parser<E> where E: ErrorReporter {
             }
         };
 
-        match nodeType {
+        match node_type {
             None => {
-                self.consume_children(name, parser);
-
-                Ok(None)
+                match self.consume_children(name, parser) {
+                    Err(()) => Err(()),
+                    Ok(()) => Ok(None)
+                }
             }
             Some(nt) => {
                 let classes = lookup_name("class", attributes);
@@ -226,7 +227,7 @@ impl<E> Parser<E> where E: ErrorReporter {
                 XmlEvent::EndElement { name } => {
 
                     depth -= 1;
-                    if (name.local_name.as_slice() == tag && depth == 0) {
+                    if name.local_name == tag && depth == 0 {
                         return Ok(());
                     }
                 }
@@ -238,7 +239,6 @@ impl<E> Parser<E> where E: ErrorReporter {
                 _ => ()
             }
         }
-        return Ok(());
     }
 
     fn parse_loop<B, T>(&self,
@@ -254,7 +254,7 @@ impl<E> Parser<E> where E: ErrorReporter {
                 XmlEvent::StartElement { name, attributes, .. } => {
 
                     let test_parse_child = self.parse_tag(
-                        name.local_name.as_slice(),
+                        &name.local_name,
                         parser,
                         &attributes
                     );
@@ -271,7 +271,7 @@ impl<E> Parser<E> where E: ErrorReporter {
                 XmlEvent::EndElement { name } => {
 
                     // TODO: remove at some point.
-                    assert_eq!(name.local_name.as_slice(), tag);
+                    assert_eq!(name.local_name, tag);
                     return Ok(());
                 }
                 XmlEvent::Characters( text ) => {
@@ -292,7 +292,6 @@ impl<E> Parser<E> where E: ErrorReporter {
                 _ => ()
             }
         }
-        return Ok(())
     }
 
 }
@@ -306,6 +305,6 @@ fn lookup_name<'a>(name: &'a str,
                    -> Option<String>
 {
     attributes.iter()
-        .find(|ref attribute| attribute.name.local_name.as_slice() == name)
+        .find(|ref attribute| attribute.name.local_name == name)
         .map(|ref attribute| attribute.value.clone())
 }

@@ -160,13 +160,13 @@ pub fn parse_template(attributes: &Vec<OwnedAttribute>) -> Option<NodeType> {
 // ------------------------------------------------- Repeat tag
 #[derive(PartialEq, Debug)]
 pub struct RepeatData {
-    pub templateName: Option<String>,
+    pub template_name: Option<String>,
     pub iter: Option<String>,
 }
 
 pub fn parse_repeat(attributes: &Vec<OwnedAttribute>) -> Option<NodeType> {
     Some(NodeType::Repeat(RepeatData {
-        templateName: super::lookup_name("template-name", attributes),
+        template_name: super::lookup_name("template-name", attributes),
         iter: super::lookup_name("iter", attributes)
     }))
 }
