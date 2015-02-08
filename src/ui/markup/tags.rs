@@ -8,7 +8,7 @@ use super::ErrorStatus;
 // Name for the "main" view.
 pub const MAIN_VIEW_NAME: &'static str = "main";
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Clone, Debug)]
 pub enum NodeType {
     Text(String),
     Group,
@@ -19,11 +19,11 @@ pub enum NodeType {
     Repeat(RepeatData)
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Node {
     pub children: Vec<Node>,
     classes: Option<String>,
-    node_type: NodeType,
+    pub node_type: NodeType,
 }
 
 #[derive(Debug)]
@@ -43,6 +43,14 @@ impl Node {
             children: Vec::new(),
             node_type: nt,
             classes: classes,
+        }
+    }
+
+    pub fn from_template(other: &Template, nt: NodeType) -> Node {
+        Node {
+            children: other.children.clone(),
+            node_type: nt,
+            classes: None
         }
     }
 
@@ -108,7 +116,7 @@ impl HasNode for View {
 type ResOrError = Result<NodeType, super::ParseError>;
 
 // ------------------------------------------------- Button tag
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Clone, Debug)]
 pub struct ButtonData {
     pub gotoview: Option<String>,
     pub action: Option<String>,
@@ -124,7 +132,7 @@ pub fn parse_button(attributes: &Vec<OwnedAttribute>) -> ResOrError {
 }
 
 // ------------------------------------------------- Line input tag
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Clone, Debug)]
 pub struct LineInputData {
     pub value: Option<String>,
     pub key: Option<String>,
@@ -138,7 +146,7 @@ pub fn parse_linput(attributes: &Vec<OwnedAttribute>) -> ResOrError {
 }
 
 // ------------------------------------------------- Progress bar tag
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Clone, Debug)]
 pub struct ProgressBarData {
     pub value: Option<String>
 }
@@ -150,7 +158,7 @@ pub fn parse_pbar(attributes: &Vec<OwnedAttribute>) -> ResOrError {
 }
 
 // ------------------------------------------------- Template tag
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Clone, Debug)]
 pub struct TemplateData {
     pub path: String,
 }
@@ -173,7 +181,7 @@ pub fn parse_template(attributes: &Vec<OwnedAttribute>) -> ResOrError {
 }
 
 // ------------------------------------------------- Repeat tag
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Clone, Debug)]
 pub struct RepeatData {
     pub template_name: String,
     pub iter: String,

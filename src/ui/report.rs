@@ -1,5 +1,5 @@
 
-pub trait ErrorReporter {
+pub trait ErrorReporter: Copy {
 
     fn log(&self, msg: String);
 }

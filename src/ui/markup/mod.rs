@@ -66,7 +66,7 @@ impl<E, B> Parser<E, B>
         }
     }
 
-    pub fn parse(&mut self) -> Library
+    pub fn parse(&mut self) -> Library<E>
     {
         let mut views = HashMap::new();
         let mut templates = HashMap::new();
@@ -98,7 +98,7 @@ impl<E, B> Parser<E, B>
             }
         }
 
-        Library::new(views, templates)
+        Library::new(self.err, views, templates)
     }
 
     fn parse_view(&mut self) -> Result<tags::View, ParseError>
