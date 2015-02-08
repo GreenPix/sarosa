@@ -7,8 +7,16 @@ use std::old_io::{File, BufferedReader};
 use client::ui;
 
 fn main() {
-    let file = File::open(&Path::new("assets/markup/test.xml")).unwrap();
-    let reader = BufferedReader::new(file);
+    {
+        let file = File::open(&Path::new("assets/markup/test.xml")).unwrap();
+        let reader = BufferedReader::new(file);
 
-    ui::markup::parse(ui::StdOutErrorReporter, reader);
+        ui::markup::parse(ui::StdOutErrorReporter, reader);
+    }
+    {
+        let file = File::open(&Path::new("assets/style/test.style")).unwrap();
+        let reader = BufferedReader::new(file);
+
+        ui::style::parse(ui::StdOutErrorReporter, reader);
+    }
 }

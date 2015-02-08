@@ -2,6 +2,7 @@
 #![feature(core)]
 
 extern crate xml;
+//extern crate color;
 
 pub mod ui;
 

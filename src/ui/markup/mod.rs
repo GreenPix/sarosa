@@ -40,7 +40,9 @@ const REPEAT_TAG: &'static str = "repeat";
 /// # Example:
 ///
 /// ```
-/// let reader = BufferedReader::new(
+/// use client::ui;
+/// 
+/// let reader = std::old_io::BufferedReader::new(
 ///     "<view name=\"toto\">\
 ///     </view>\
 /// ".as_bytes());

@@ -1,5 +1,4 @@
 use std::ptr;
-use std::mem;
 
 
 pub fn insert_at<T>(into: &mut Vec<T>,
@@ -16,8 +15,6 @@ pub fn insert_at<T>(into: &mut Vec<T>,
     if pos >= old_len {
         return;
     }
-
-    assert!(pos >= 0);
 
     let p = into.as_mut_ptr();
     let len = into.len();
