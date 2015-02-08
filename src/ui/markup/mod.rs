@@ -9,7 +9,6 @@ use std::collections::HashMap;
 use ui::ErrorReporter;
 
 // Re-export
-
 pub use self::tags::Node;
 pub use self::tags::NodeType;
 pub use self::tags::{Template, View};
@@ -36,8 +35,29 @@ const PROGRESS_BAR_TAG: &'static str = "progress-bar";
 const REPEAT_TAG: &'static str = "repeat";
 
 
+/// Parse the given buffer.
+///
+/// # Example:
+///
+/// ```
+/// let reader = BufferedReader::new(
+///     "<view name=\"toto\">\
+///     </view>\
+/// ".as_bytes());
+/// ui::markup::parse(ui::StdOutErrorReporter, reader);
+/// ```
+pub fn parse<E, B>(reporter: E, reader: B) -> Library<E>
+    where E: ErrorReporter,
+          B: Buffer
+{
+    let mut parser = Parser::new(reporter, reader);
+    parser.parse()
+}
+
+
+
 /// Parser
-pub struct Parser<E, B> {
+struct Parser<E, B> {
     err: E,
     parser: EventReader<B>,
 }
