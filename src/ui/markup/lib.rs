@@ -4,7 +4,6 @@ use std::mem;
 
 use ui::markup::tags::{Node, NodeType, TemplateData, View, Template};
 use ui::ErrorReporter;
-use util;
 
 // Library
 pub struct Library<E> {
@@ -47,9 +46,11 @@ impl<E> Library<E>
     pub fn resolve_templates(&mut self) {
         let ref mut views = self.views;
         let ref templates = self.templates;
+        let ref err = self.err;
         for (_, view) in views.iter_mut() {
             for node in view.children.iter_mut() {
                 Library::<E>::resolve_templates_for_node(
+                    &err,
                     &templates,
                     node
                 );
@@ -57,14 +58,16 @@ impl<E> Library<E>
         }
     }
 
-    fn resolve_templates_for_node(templates: &HashMap<String, Template>,
+    fn resolve_templates_for_node(err: &E,
+                                  templates: &HashMap<String, Template>,
                                   node: &mut Node)
     {
-        let mut child_index = 0;
         for child in node.children.iter_mut() {
 
+            let mut is_empty = None;
             let test = match child.node_type {
                 NodeType::Template(TemplateData { ref path }) => {
+                    is_empty = Some(path.clone());
                     templates.get(path)
                 }
                 _ => None
@@ -80,12 +83,19 @@ impl<E> Library<E>
                         )
                     );
                 }
-                None => ()
+                // TODO: Warn if the template name is not valid
+                //       (not a data-bindings)
+                None => match is_empty {
+                    Some(name) => err.log(
+                        format!("Warning `{}` template name not found", name)
+                    ),
+                    None => ()
+                }
             }
         }
 
         for child in node.children.iter_mut() {
-            Library::<E>::resolve_templates_for_node(templates, child);
+            Library::<E>::resolve_templates_for_node(err, templates, child);
         }
     }
 }
