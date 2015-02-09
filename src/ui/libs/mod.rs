@@ -1,2 +1,3 @@
 
-pub struct LibPath(String);
+#[derive(Debug)]
+pub struct LibPath(pub String);

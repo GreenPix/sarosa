@@ -3,19 +3,20 @@ use ui::libs::LibPath;
 //use color::alpha::Rgba;
 
 pub struct Stylesheet {
-    rules: Vec<Rule>,
+    pub rules: Vec<Rule>,
 }
 
 pub struct Rule {
-    selector: String,
-    declarations: Vec<Declaration>,
+    pub selector: String,
+    pub declarations: Vec<Declaration>,
 }
 
 pub struct Declaration {
-    name: String,
-    value: Value,
+    pub name: String,
+    pub value: Value,
 }
 
+#[derive(Debug)]
 pub enum Value {
     Length(f32, Unit),
 //    ColorValue(Rgba<u8>)
@@ -23,6 +24,17 @@ pub enum Value {
     KeywordAuto,
 }
 
+#[derive(Debug)]
 pub enum Unit {
     Px,
+}
+
+impl Stylesheet {
+
+    #[inline]
+    pub fn new() -> Stylesheet {
+        Stylesheet {
+            rules: Vec::new()
+        }
+    }
 }
