@@ -4,6 +4,7 @@ use std::collections::HashSet;
 
 use super::ErrorType;
 use super::ErrorStatus;
+use super::lookup_name;
 
 // Name for the "main" view.
 pub const MAIN_VIEW_NAME: &'static str = "main";
@@ -125,9 +126,9 @@ pub struct ButtonData {
 
 pub fn parse_button(attributes: &Vec<OwnedAttribute>) -> ResOrError {
     Ok(NodeType::Button(ButtonData {
-        gotoview: super::lookup_name("goto-view", attributes),
-        action: super::lookup_name("action", attributes),
-        key: super::lookup_name("key", attributes),
+        gotoview: lookup_name("goto-view", attributes),
+        action: lookup_name("action", attributes),
+        key: lookup_name("key", attributes),
     }))
 }
 
@@ -140,8 +141,8 @@ pub struct LineInputData {
 
 pub fn parse_linput(attributes: &Vec<OwnedAttribute>) -> ResOrError {
     Ok(NodeType::LineInput(LineInputData {
-        value: super::lookup_name("value", attributes),
-        key: super::lookup_name("key", attributes),
+        value: lookup_name("value", attributes),
+        key: lookup_name("key", attributes),
     }))
 }
 
@@ -153,7 +154,7 @@ pub struct ProgressBarData {
 
 pub fn parse_pbar(attributes: &Vec<OwnedAttribute>) -> ResOrError {
     Ok(NodeType::ProgressBar(ProgressBarData {
-        value: super::lookup_name("value", attributes)
+        value: lookup_name("value", attributes)
     }))
 }
 
@@ -164,7 +165,7 @@ pub struct TemplateData {
 }
 
 pub fn parse_template(attributes: &Vec<OwnedAttribute>) -> ResOrError {
-    match super::lookup_name("path", attributes) {
+    match lookup_name("path", attributes) {
         Some(path) => {
             Ok(NodeType::Template(TemplateData {
                 path: path
@@ -189,8 +190,8 @@ pub struct RepeatData {
 
 pub fn parse_repeat(attributes: &Vec<OwnedAttribute>) -> ResOrError {
 
-    match (super::lookup_name("template-name", attributes),
-           super::lookup_name("iter", attributes))
+    match (lookup_name("template-name", attributes),
+           lookup_name("iter", attributes))
     {
         (Some(name), Some(iter)) => {
             Ok(NodeType::Repeat(RepeatData {
