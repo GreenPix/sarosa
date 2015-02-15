@@ -50,6 +50,7 @@ impl<B> BufferConsumer<B>
     pub fn expect_char(&mut self, expect: char) -> Result<(), Error> {
         match self.look_next_char() {
             Some(c) if c == expect => {
+                self.consume_any_char();
                 Ok(())
             }
             Some(c) => {

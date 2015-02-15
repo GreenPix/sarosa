@@ -38,7 +38,13 @@ impl<'a, E, B> Parser<'a, E, B>
 
         // Read token from the buffer.
         'rule: loop {
-            self.bc.consume_whitespace();
+            match self.bc.consume_whitespace() {
+                Ok(_) => (),
+                _ => {
+                    self.err.log(format!("Error {}", self.bc.error_eof()));
+                    break 'rule;
+                }
+            }
 
             // Is there anything to read ?
             match self.bc.look_next_char() {
@@ -78,7 +84,7 @@ impl<'a, E, B> Parser<'a, E, B>
 
             match self.bc.look_next_char() {
                 Some('}') => break 'decl,
-                Some(c) => {
+                Some(_) => {
                     let decl =  try!(self.parse_declaration());
                     declarations.push(decl);
                 }

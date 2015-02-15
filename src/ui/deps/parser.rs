@@ -31,7 +31,13 @@ impl<E, B> Parser<E, B>
 
         // Read token from the buffer.
         'rule: loop {
-            self.bc.consume_whitespace();
+            match self.bc.consume_whitespace() {
+                Ok(_) => (),
+                _ => {
+                    self.err.log(format!("Error {}", self.bc.error_eof()));
+                    break 'rule;
+                }
+            }
 
             // Is there anything to read ?
             match self.bc.look_next_char() {
@@ -45,7 +51,7 @@ impl<E, B> Parser<E, B>
                 },
                 _          => match self.parse_def() {
                     Ok((name, value)) => {
-                        if (self.prefix.is_empty()) {
+                        if self.prefix.is_empty() {
                             styledefs.defs.insert(name, value);
                         } else {
                             styledefs.defs.insert(
@@ -66,17 +72,21 @@ impl<E, B> Parser<E, B>
     }
 
     fn parse_prefix(&mut self) -> Result<String, Error> {
+        println!("Parse prefix");
         self.bc.consume_any_char();
         try!(self.bc.consume_whitespace());
         let prefix = try!(self.bc.consume_identifier());
         try!(self.bc.consume_whitespace());
         try!(self.bc.expect_char(']'));
+        println!("Prefix {}", prefix);
         Ok(prefix)
     }
 
     fn parse_def(&mut self) -> Result<(String, Value), Error> {
+        println!("Parse def");
         let name = try!(self.bc.consume_path());
         try!(self.bc.consume_whitespace());
+        println!("name `{}`", name);
         try!(self.bc.expect_char('='));
         try!(self.bc.consume_whitespace());
         let value = try!(self.parse_value());
@@ -108,14 +118,15 @@ impl<E, B> Parser<E, B>
     fn parse_ctor(&mut self) -> Result<Value, Error> {
         let ctor = try!(self.bc.consume_word());
         try!(self.bc.consume_whitespace());
-        let mut args = try!(self.parse_args());
+        let args = try!(self.parse_args());
+
+        println!("args `{:?}`", args);
 
         match ctor.as_slice() {
             "Font" => {
-                self.find_str_arg(args.iter(), "path", 0);
                 let path = try!(self.find_str_arg(args.iter(), "path", 0));
-                let width = try!(self.find_num_arg(args.iter(), "width", 1));
-                let height = try!(self.find_num_arg(args.iter(), "height", 2));
+                let width = try!(self.find_num_arg(args.iter(), "width", 0));
+                let height = try!(self.find_num_arg(args.iter(), "height", 1));
                 Ok(Value::Font(path, width, height))
             },
             "Image" => {
@@ -187,6 +198,7 @@ impl<E, B> Parser<E, B>
                 let name = try!(self.bc.consume_word());
                 try!(self.bc.consume_whitespace());
                 try!(self.bc.expect_char(':'));
+                try!(self.bc.consume_whitespace());
 
                 let c = match self.bc.look_next_char() {
                     Some(c) => c,
@@ -224,18 +236,19 @@ impl<E, B> Parser<E, B>
         Ok(quote)
     }
 
-    fn find_str_arg<'a, I>(&self, iter: I, name: &str, pos: usize) -> Result<String, Error>
+    fn find_str_arg<'a, I>(&self, iter: I, name: &str, pos: usize)
+        -> Result<String, Error>
         where I: Iterator<Item=&'a Arg> + Clone
     {
         let i1 = iter.clone().filter(|&x| {
             match x.arg_type {
-                ArgType::Number(_) => true,
+                ArgType::Strstr(_) => true,
                 _ => false
             }
         });
         let i2 = iter.clone().filter(|&x| {
             match x.arg_type {
-                ArgType::Number(_) => true,
+                ArgType::Strstr(_) => true,
                 _ => false
             }
         });
@@ -248,7 +261,8 @@ impl<E, B> Parser<E, B>
         })
     }
 
-    fn find_num_arg<'a, I>(&self, iter: I, name: &str, pos: usize) -> Result<f32, Error>
+    fn find_num_arg<'a, I>(&self, iter: I, name: &str, pos: usize)
+        -> Result<f32, Error>
         where I: Iterator<Item=&'a Arg> + Clone
     {
         let i1 = iter.clone().filter(|&x| {
@@ -272,8 +286,12 @@ impl<E, B> Parser<E, B>
         })
     }
 
-    fn find_type_arg<'a, I1, I2>(&self, name: &str, pos:usize, mut bt1: I1, mut bt2: I2)
-        -> Result<&'a Arg, Error>
+    fn find_type_arg<'a, I1, I2>(
+        &self,
+        name: &str,
+        pos:usize,
+        mut bt1: I1,
+        mut bt2: I2) -> Result<&'a Arg, Error>
         where I1: Iterator<Item=&'a Arg>,
               I2: Iterator<Item=&'a Arg>
     {
@@ -297,13 +315,13 @@ impl<E, B> Parser<E, B>
 
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 enum ArgType {
     Strstr(String),
     Number(f32)
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct Arg {
     pub name: String,
     pub arg_type: ArgType,

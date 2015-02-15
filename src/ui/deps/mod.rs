@@ -2,7 +2,6 @@
 mod parser;
 
 // Dependencies
-use self::parser::Parser;
 use std::collections::HashMap;
 use ui::report::ErrorReporter;
 
