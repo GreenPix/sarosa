@@ -132,7 +132,7 @@ impl<E, B> Parser<E, B>
         }
         try!(self.bc.expect_char('('));
 
-        let args = Vec::new();
+        let mut args = Vec::new();
 
         'args: loop {
             try!(self.bc.consume_while(is_separator));
@@ -219,32 +219,46 @@ impl<E, B> Parser<E, B>
     }
 
     fn find_str_arg<'a, I>(&self, iter: I, name: &str, pos: usize) -> Result<String, Error>
-        where I: Iterator<Item=&'a Arg>
+        where I: Iterator<Item=&'a Arg> + Clone
     {
-
-        self.find_type_arg(name, pos, iter.filter(|&x| {
+        let i1 = iter.clone().filter(|&x| {
             match x.arg_type {
-                ArgType::Strstr(_) => true,
+                ArgType::Number(_) => true,
                 _ => false
             }
-        })).map(|arg| {
+        });
+        let i2 = iter.clone().filter(|&x| {
+            match x.arg_type {
+                ArgType::Number(_) => true,
+                _ => false
+            }
+        });
+
+        self.find_type_arg(name, pos, i1, i2).map(|arg| {
             match arg.arg_type {
-                ArgType::Strstr(val) => val,
+                ArgType::Strstr(ref val) => val.clone(),
                 _ => unreachable!()
             }
         })
     }
 
     fn find_num_arg<'a, I>(&self, iter: I, name: &str, pos: usize) -> Result<f32, Error>
-        where I: Iterator<Item=&'a Arg>
+        where I: Iterator<Item=&'a Arg> + Clone
     {
-
-        self.find_type_arg(name, pos, iter.filter(|&x| {
+        let i1 = iter.clone().filter(|&x| {
             match x.arg_type {
                 ArgType::Number(_) => true,
                 _ => false
             }
-        })).map(|arg| {
+        });
+        let i2 = iter.clone().filter(|&x| {
+            match x.arg_type {
+                ArgType::Number(_) => true,
+                _ => false
+            }
+        });
+
+        self.find_type_arg(name, pos, i1, i2).map(|arg| {
             match arg.arg_type {
                 ArgType::Number(val) => val,
                 _ => unreachable!()
@@ -252,17 +266,16 @@ impl<E, B> Parser<E, B>
         })
     }
 
-    fn find_type_arg<'a, I>(&self, name: &str, pos:usize, by_type: I)
+    fn find_type_arg<'a, I1, I2>(&self, name: &str, pos:usize, mut bt1: I1, mut bt2: I2)
         -> Result<&'a Arg, Error>
-        where I: Iterator<Item=&'a Arg>
+        where I1: Iterator<Item=&'a Arg>,
+              I2: Iterator<Item=&'a Arg>
     {
-        //let by_type = iter.filter(filter_by_type);
-
-        let try_by_name = by_type.find(|&x| {
+        let try_by_name = bt1.find(|&x| {
             x.name == name
         });
 
-        let by_pos = by_type.nth(pos);
+        let by_pos = bt2.nth(pos);
 
         if try_by_name.is_none() {
             match by_pos {
