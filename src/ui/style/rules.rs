@@ -1,5 +1,5 @@
 
-use ui::libs::LibPath;
+use ui::deps;
 //use color::alpha::Rgba;
 
 pub struct Stylesheet {
@@ -20,7 +20,7 @@ pub struct Declaration {
 pub enum Value {
     Length(f32, Unit),
 //    ColorValue(Rgba<u8>)
-    LibPathValue(LibPath),
+    DepValue(deps::Value),
     KeywordAuto,
 }
 

@@ -13,10 +13,16 @@ fn main() {
 
         ui::markup::parse(ui::StdOutErrorReporter, reader);
     }
+    let styledefs = {
+        let file = File::open(&Path::new("assets/markup/test.xml")).unwrap();
+        let reader = BufferedReader::new(file);
+
+        ui::deps::parse(ui::StdOutErrorReporter, reader)
+    };
     {
         let file = File::open(&Path::new("assets/style/test.style")).unwrap();
         let reader = BufferedReader::new(file);
 
-        ui::style::parse(ui::StdOutErrorReporter, reader);
+        ui::style::parse(ui::StdOutErrorReporter, reader, &styledefs);
     }
 }

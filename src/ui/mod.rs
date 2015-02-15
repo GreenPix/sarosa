@@ -2,7 +2,7 @@
 // here. We don't need that much visibility
 pub mod markup;
 pub mod style;
-pub mod libs;
+pub mod deps;
 
 pub use self::report::ErrorReporter;
 pub use self::report::StdOutErrorReporter;
