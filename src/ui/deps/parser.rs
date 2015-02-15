@@ -45,7 +45,13 @@ impl<E, B> Parser<E, B>
                 },
                 _          => match self.parse_def() {
                     Ok((name, value)) => {
-                        styledefs.defs.insert(name, value);
+                        if (self.prefix.is_empty()) {
+                            styledefs.defs.insert(name, value);
+                        } else {
+                            styledefs.defs.insert(
+                                "".to_string() + &self.prefix + &"." + &name,
+                                value);
+                        }
                     }
                     Err(err) => {
                         self.err.log(format!("Error {}", err));

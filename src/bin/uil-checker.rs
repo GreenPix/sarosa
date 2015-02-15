@@ -14,7 +14,7 @@ fn main() {
         ui::markup::parse(ui::StdOutErrorReporter, reader);
     }
     let styledefs = {
-        let file = File::open(&Path::new("assets/markup/test.xml")).unwrap();
+        let file = File::open(&Path::new("assets/deps/test.deps")).unwrap();
         let reader = BufferedReader::new(file);
 
         ui::deps::parse(ui::StdOutErrorReporter, reader)
