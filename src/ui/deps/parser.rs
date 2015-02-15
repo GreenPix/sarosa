@@ -30,23 +30,22 @@ impl<E, B> Parser<E, B>
         let mut styledefs = StyleDefinitions::new();
 
         // Read token from the buffer.
-        'rule: loop {
+        'def: loop {
             match self.bc.consume_whitespace() {
                 Ok(_) => (),
                 _ => {
-                    self.err.log(format!("Error {}", self.bc.error_eof()));
-                    break 'rule;
+                    break 'def;
                 }
             }
 
             // Is there anything to read ?
             match self.bc.look_next_char() {
-                None       => break 'rule,
+                None       => break 'def,
                 Some('[')  => match self.parse_prefix() {
                     Ok(prefix) => self.prefix = prefix,
                     Err(err) => {
                         self.err.log(format!("Error {}", err));
-                        break 'rule;
+                        break 'def;
                     }
                 },
                 _          => match self.parse_def() {
@@ -61,7 +60,7 @@ impl<E, B> Parser<E, B>
                     }
                     Err(err) => {
                         self.err.log(format!("Error {}", err));
-                        break 'rule;
+                        break 'def;
                     }
                 }
             }
@@ -72,21 +71,17 @@ impl<E, B> Parser<E, B>
     }
 
     fn parse_prefix(&mut self) -> Result<String, Error> {
-        println!("Parse prefix");
         self.bc.consume_any_char();
         try!(self.bc.consume_whitespace());
         let prefix = try!(self.bc.consume_identifier());
         try!(self.bc.consume_whitespace());
         try!(self.bc.expect_char(']'));
-        println!("Prefix {}", prefix);
         Ok(prefix)
     }
 
     fn parse_def(&mut self) -> Result<(String, Value), Error> {
-        println!("Parse def");
         let name = try!(self.bc.consume_path());
         try!(self.bc.consume_whitespace());
-        println!("name `{}`", name);
         try!(self.bc.expect_char('='));
         try!(self.bc.consume_whitespace());
         let value = try!(self.parse_value());
@@ -119,8 +114,6 @@ impl<E, B> Parser<E, B>
         let ctor = try!(self.bc.consume_word());
         try!(self.bc.consume_whitespace());
         let args = try!(self.parse_args());
-
-        println!("args `{:?}`", args);
 
         match ctor.as_slice() {
             "Font" => {

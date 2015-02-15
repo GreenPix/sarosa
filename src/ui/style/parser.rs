@@ -41,7 +41,6 @@ impl<'a, E, B> Parser<'a, E, B>
             match self.bc.consume_whitespace() {
                 Ok(_) => (),
                 _ => {
-                    self.err.log(format!("Error {}", self.bc.error_eof()));
                     break 'rule;
                 }
             }
