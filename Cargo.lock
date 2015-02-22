@@ -2,19 +2,20 @@
 name = "client"
 version = "0.0.1"
 dependencies = [
- "xml-rs 0.1.17 (git+https://github.com/Nemikolh/xml-rs)",
+ "bitflags 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "xml-rs 0.1.19 (git+https://github.com/Nemikolh/xml-rs)",
 ]
 
 [[package]]
 name = "bitflags"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "xml-rs"
-version = "0.1.17"
-source = "git+https://github.com/Nemikolh/xml-rs#f91ea9305b6403e466ddc56983aed8a493835447"
+version = "0.1.19"
+source = "git+https://github.com/Nemikolh/xml-rs#f2e8106f22811c325835aca8ead832d3282e552e"
 dependencies = [
- "bitflags 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "bitflags 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 

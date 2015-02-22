@@ -1,5 +1,4 @@
-#![feature(path)]
-#![feature(io)]
+#![feature(old_path, old_io)]
 
 extern crate client;
 
