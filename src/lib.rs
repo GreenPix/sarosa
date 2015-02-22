@@ -1,6 +1,8 @@
 
-#![feature(core)]
+#![feature(core, old_io)]
 
+#[macro_use]
+extern crate bitflags;
 extern crate xml;
 //extern crate color;
 
