@@ -9,6 +9,8 @@ pub use self::report::StdOutErrorReporter;
 pub use self::report::EmptyErrorReporter;
 
 mod report;
+mod asset;
+mod layout;
 // mod view;
 // mod databinding;
 // mod router;

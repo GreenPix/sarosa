@@ -4,7 +4,8 @@ mod parser;
 // Dependencies
 use std::collections::HashMap;
 use ui::report::ErrorReporter;
-
+use ui::style;
+use ui::asset;
 
 /// Convenient function to parse a style.
 pub fn parse<E, B>(reporter: E, reader: B) -> StyleDefinitions
@@ -38,4 +39,16 @@ pub enum Value {
     /// Image(path)
     Image(String),
     // Add other construtor here...
+}
+
+impl Value {
+    pub fn convert_to_style_value(&self) -> style::Value {
+        // TODO: FIXME We don't do anything interesting here.
+        match *self {
+            Value::Number(v) => style::Value::Length(v, style::Unit::Px),
+            Value::Quote(..) => style::Value::KeywordAuto,
+            Value::Font(..) => style::Value::Font(asset::FontData),
+            Value::Image(..) => style::Value::Image(asset::ImageData)
+        }
+    }
 }

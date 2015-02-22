@@ -1,5 +1,6 @@
 
 use ui::deps;
+use ui::asset;
 //use color::alpha::Rgba;
 
 pub struct Stylesheet {
@@ -20,7 +21,8 @@ pub struct Declaration {
 pub enum Value {
     Length(f32, Unit),
 //    ColorValue(Rgba<u8>)
-    DepValue(deps::Value),
+    Font(asset::FontData),
+    Image(asset::ImageData),
     KeywordAuto,
 }
 

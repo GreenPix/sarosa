@@ -145,7 +145,7 @@ impl<'a, E, B> Parser<'a, E, B>
                     self.bc.consume_any_char();
                     let path = try!(self.bc.consume_path());
                     match self.deps.defs.get(&path) {
-                        Some(v) => Ok(Value::DepValue(v.clone())),
+                        Some(v) => Ok(v.convert_to_style_value()),
                         None => Err(self.bc.error_str(
                             format!("Couldn't find `{}` in style definitions", path)
                         ))
