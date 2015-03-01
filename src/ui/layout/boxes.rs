@@ -1,54 +1,47 @@
 
 use std::num::Float;
+use super::dim::Dimensions;
+use super::dim::DimFlags;
 
-/// Dimensions for the box model.
-///
-/// This code follows the css box model
-/// in naming and conventions. (all sizes are in pixels)
-pub struct Dimensions {
-    // Position of the content area relative to the viewport origin
-    content: Rect,
-    padding: EdgeSizes,
-    border: EdgeSizes,
-    margin: EdgeSizes,
-}
 
-struct Rect {
-    x: f32,
-    y: f32,
-    width: f32,
-    height: f32,
-}
+pub struct LayoutBuffer(Vec<LayoutBox>);
 
-struct EdgeSizes {
-    left: f32,
-    right: f32,
-    top: f32,
-    bottom: f32,
-}
-
-pub struct LayoutBox {
-    dim: Dimensions,
-    // Store auto/fixed behaviors
-    flags: DimFlags,
-    kids: Vec<LayoutBox>,
-}
-
-bitflags! {
-    flags DimFlags: u32 {
-        // A text node is WIDTH_FIXED,
-        // A node with a style fixed width is naturally WIDTH_FIXED
-        const WIDTH_FIXED           = 0b00100000,
-        const MARGIN_BOTTTOM_AUTO   = 0b00010000,
-        const MARGIN_TOP_AUTO       = 0b00001000,
-        const MARGIN_RIGHT_AUTO     = 0b00000100,
-        const MARGIN_LEFT_AUTO      = 0b00000010,
-        const WIDTH_AUTO            = 0b00000001,
-        const MARGIN_X_AUTO         = MARGIN_LEFT_AUTO.bits
-                                    | MARGIN_RIGHT_AUTO.bits,
-        const MARGIN_Y_AUTO         = MARGIN_TOP_AUTO.bits
-                                    | MARGIN_BOTTTOM_AUTO.bits,
+impl LayoutBuffer {
+    pub fn new(size: usize) -> LayoutBuffer {
+        LayoutBuffer(Vec::with_capacity(size))
     }
+}
+
+// The layout box kids are unsorted (defined by the markup)
+// except the one declared with absolute positioning. They will
+// end up at the end sorted by z-index.
+struct LayoutBox {
+    dim: Dimensions,
+    // Stores auto/fixed behaviors
+    flags: DimFlags,
+    kids: usize,
+}
+
+macro_rules! layout_for{
+    ($child:ident in ($this:ident, $iter:ident) $code:block) => {{
+        let mut has_child = $this.kids;
+
+        while has_child > 0 {
+            let $child = $iter.next().unwrap();
+            has_child -= 1;
+            $code
+        }
+    }};
+
+    ($child:ident in [$nb:ident, $iter:ident] $code:block) => {{
+        let mut has_child = $nb;
+
+        while has_child > 0 {
+            let $child = $iter.next().unwrap();
+            has_child -= 1;
+            $code
+        }
+    }};
 }
 
 impl LayoutBox {
@@ -56,14 +49,18 @@ impl LayoutBox {
     //
     // TODO: FIXME Text nodes must have their size precomputed
     //
-    // Par défaut on préfère l'affichage ligne a celui en colonne
     // PRECONDITONS: Everything initialized using PropertyName.
     //
-    pub fn compute_layout(&mut self, max_width: f32, max_height: f32) {
+    pub fn compute_layout<'a, I>(
+        &mut self,
+        iter: &mut I,
+        max_width: f32,
+        max_height: f32)
+            where I: Iterator<Item=&'a mut LayoutBox> + Clone
+    {
 
         // Syntax sugar
         let ref mut d = self.dim;
-        let ref mut kids = self.kids;
         let ref node = self.flags;
 
         // At this point we don't know d.height / d.width
@@ -84,7 +81,7 @@ impl LayoutBox {
 
         // We can compute directly the d.width
         // and the space for each line
-        let max_line_width  = max_width.min(LayoutBox::get_bigger_line_size(kids.iter(), max_width));
+        let max_line_width  = max_width.min(LayoutBox::get_bigger_line_size(self.kids, &mut iter.clone(), max_width));
 
         d.content.width = max_line_width;
 
@@ -135,9 +132,9 @@ impl LayoutBox {
             });
         }
 
-        for child in kids.iter_mut() {
+        layout_for!(child in (self, iter) {
 
-            let child_full_width = child.get_max_width();
+            let child_full_width = child.get_max_width(&mut iter.clone());
             let child_is_auto = child.flags.is_auto();
 
             // Line return ?
@@ -148,7 +145,7 @@ impl LayoutBox {
             child.dim.content.x = x;
             child.dim.content.y = y;
 
-            child.compute_layout(child_max_width - current_line_width,
+            child.compute_layout(iter, child_max_width - current_line_width,
                                  current_height_left);
 
             current_line_width += child.dim.content.width
@@ -173,7 +170,7 @@ impl LayoutBox {
             if child_is_auto {
                 line_return!(stack, current_line_height, current_line_width, current_height_left, d);
             }
-        }
+        });
 
 
         // Now we do know d.height / d.width
@@ -202,8 +199,8 @@ impl LayoutBox {
         }
     }
 
-    fn get_bigger_line_size<'a, I>(kids: I, max_width: f32) -> f32
-        where I: Iterator<Item=&'a LayoutBox>
+    fn get_bigger_line_size<'a, I>(nb_childs: usize, iter: &mut I, max_width: f32) -> f32
+        where I: Iterator<Item=&'a mut LayoutBox>
     {
 
         let mut max = 0f32;
@@ -216,8 +213,8 @@ impl LayoutBox {
             });
         }
 
-        for child in kids {
-            let child_full_width = child.get_max_width();
+        layout_for!(child in [nb_childs, iter] {
+            let child_full_width = child.get_max_width(iter);
 
             // Line return ?
             if child_full_width + current_line_width > max_width {
@@ -229,12 +226,14 @@ impl LayoutBox {
             if child.flags.is_auto() {
                 line_return!(max, current_line_width);
             }
-        }
+        });
 
         max
     }
 
-    fn get_max_width(&self) -> f32 {
+    fn get_max_width<'a, I>(&self, iter: &mut I) -> f32
+        where I: Iterator<Item=&'a mut LayoutBox>
+    {
 
         let o = self.dim.padding.left
             + self.dim.padding.right
@@ -250,8 +249,8 @@ impl LayoutBox {
         // Compute max width by using the max width length of a line
         let mut max = 0f32;
         let mut sum = 0f32;
-        for child in self.kids.iter() {
-            sum += child.get_max_width();
+        layout_for!(child in (self, iter) {
+            sum += child.get_max_width(iter);
 
             if sum > max {
                 max = sum;
@@ -259,52 +258,9 @@ impl LayoutBox {
             if child.flags.is_auto() {
                 sum = 0f32;
             }
-        }
+        });
 
 
         sum + o
-    }
-}
-
-impl DimFlags {
-
-    #[inline]
-    fn is_auto(&self) -> bool {
-        self.intersects(WIDTH_AUTO | MARGIN_X_AUTO)
-    }
-
-    #[inline]
-    fn has_width_auto(&self) -> bool {
-        self.contains(WIDTH_AUTO)
-    }
-
-    #[inline]
-    fn has_width_fixed(&self) -> bool {
-        self.contains(WIDTH_FIXED)
-    }
-
-    #[inline]
-    fn has_margin_top_or_bot_auto(&self) -> bool {
-        self.intersects(MARGIN_Y_AUTO)
-    }
-
-    #[inline]
-    fn has_margin_left_auto(&self) -> bool {
-        self.contains(MARGIN_LEFT_AUTO)
-    }
-
-    #[inline]
-    fn has_margin_right_auto(&self) -> bool {
-        self.contains(MARGIN_RIGHT_AUTO)
-    }
-
-    #[inline]
-    fn has_margin_top_auto(&self) -> bool {
-        self.contains(MARGIN_TOP_AUTO)
-    }
-
-    #[inline]
-    fn has_margin_bottom_auto(&self) -> bool {
-        self.contains(MARGIN_BOTTTOM_AUTO)
     }
 }
