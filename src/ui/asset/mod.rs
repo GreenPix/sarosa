@@ -1,6 +1,6 @@
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FontData;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ImageData;

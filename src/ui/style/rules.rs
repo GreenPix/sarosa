@@ -17,7 +17,7 @@ pub struct Declaration {
     pub value: Value,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Value {
     Length(f32, Unit),
 //    ColorValue(Rgba<u8>)
@@ -26,7 +26,7 @@ pub enum Value {
     KeywordAuto,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Unit {
     Px,
 }
