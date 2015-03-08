@@ -1,12 +1,4 @@
 
-#![feature(core, old_io)]
-
-#[macro_use]
-extern crate bitflags;
-extern crate xml;
-//extern crate color;
-
-pub mod ui;
+extern crate uil;
 
 mod util;
-mod parsing;

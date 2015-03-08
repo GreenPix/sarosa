@@ -1,27 +1,26 @@
 #![feature(old_path, old_io)]
 
-extern crate client;
+extern crate uil;
 
 use std::old_io::{File, BufferedReader};
-use client::ui;
 
 fn main() {
     {
         let file = File::open(&Path::new("assets/markup/test.xml")).unwrap();
         let reader = BufferedReader::new(file);
 
-        ui::markup::parse(ui::StdOutErrorReporter, reader);
+        uil::markup::parse(uil::StdOutErrorReporter, reader);
     }
     let styledefs = {
         let file = File::open(&Path::new("assets/deps/test.deps")).unwrap();
         let reader = BufferedReader::new(file);
 
-        ui::deps::parse(ui::StdOutErrorReporter, reader)
+        uil::deps::parse(uil::StdOutErrorReporter, reader)
     };
     {
         let file = File::open(&Path::new("assets/style/test.style")).unwrap();
         let reader = BufferedReader::new(file);
 
-        ui::style::parse(ui::StdOutErrorReporter, reader, &styledefs);
+        uil::style::parse(uil::StdOutErrorReporter, reader, &styledefs);
     }
 }
