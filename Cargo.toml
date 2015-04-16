@@ -1,9 +1,10 @@
 [package]
 
-name = "client"
+name = "Sarosa"
 version = "0.0.1"
-authors = ["Nemikolh <joan.varvenne@gmail.com>"]
+authors = ["The GreenPix developers"]
 
-[dependencies.uil]
-# version = "*"
-git = "https://github.com/uil-lang/uil-rs"
+[dependencies]
+uil = "*"
+glutin = "*"
+glium = "*"
