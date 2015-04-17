@@ -1,17 +1,10 @@
 [package]
 
-name = "client"
+name = "Sarosa"
 version = "0.0.1"
-authors = ["Nemikolh <joan.varvenne@gmail.com>"]
+authors = ["The GreenPix developers"]
 
-[dependencies.pistoncore-sdl2_window]
-
-git = "https://github.com/pistondevelopers/sdl2_window"
-
-[dependencies.piston2d-opengl_graphics]
-
-git = "https://github.com/pistondevelopers/opengl_graphics"
-
-[dependencies.cgmath]
-
-git = "https://github.com/bjz/cgmath-rs"
+[dependencies]
+uil = "*"
+glutin = "*"
+glium = "*"

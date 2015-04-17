@@ -1,0 +1,7 @@
+.anim-blur {
+
+}
+
+.btn-play, .btn-quit {
+    background-color: #c4740b;
+}
