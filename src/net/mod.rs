@@ -63,7 +63,7 @@ impl Server {
     }
 
     pub fn disconnect(&mut self) {
-        self.tx_error.send(());
+        let _ = self.tx_error.send(());
     }
 
     pub fn connect(&mut self) {

@@ -48,7 +48,7 @@ impl GameRenderer {
         // building the vertex buffer and index buffers that will be filled with the data of
         // the sprites
         let (vertex_buffer, index_buffer) = {
-            let mut vb: VertexBuffer<shaders::Vertex> = VertexBuffer::empty_dynamic(display,
+            let vb: VertexBuffer<shaders::Vertex> = VertexBuffer::empty_dynamic(display,
                                                                             MAX_SPRITES * 4).unwrap();
             let mut ib_data = Vec::with_capacity(MAX_SPRITES * 6);
 
