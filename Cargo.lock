@@ -421,7 +421,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "sarosa-net"
 version = "0.1.0"
-source = "git+ssh://git@gitlab.com/slayers-online/sarosa-net.git#ff24c6aa0c9a7581fef50086d9cadbae7dc4d9b7"
+source = "git+ssh://git@gitlab.com/slayers-online/sarosa-net.git#f8da2aa9e99a4b2b6d0fa39a0228dc0d464a95f6"
 dependencies = [
  "byteorder 0.3.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "capnp 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",

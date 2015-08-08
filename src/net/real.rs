@@ -113,18 +113,19 @@ impl RemoteServer {
                             match server_event {
                                 ThisIsYou(id) => {
                                     if this_player_id.is_none() {
+                                        debug!("ThisIsYou({}) received", id);
                                         this_player_id = Some(id);
-                                        player_id.store(10, Ordering::Relaxed);
+                                        player_id.store(id as usize, Ordering::Relaxed);
                                     }
                                 }
-                                Location {x, y, id} => {
+                                Location {x, y, entity} => {
                                     let xf = x.to_f32().unwrap_or(0f32) / 1000f32;
                                     let yf = y.to_f32().unwrap_or(0f32) / 1000f32;
                                     if let &Some(me) = &this_player_id {
-                                        let server_event = if me == id {
+                                        let server_event = if me == entity {
                                             ServerEvent::Position(Vector2::new(xf, yf), THIS_PLAYER)
                                         } else {
-                                            ServerEvent::Position(Vector2::new(xf, yf), id)
+                                            ServerEvent::Position(Vector2::new(xf, yf), entity)
                                         };
                                         match tx_serv.send(server_event) {
                                             Err(_) => break 'run,

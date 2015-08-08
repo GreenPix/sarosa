@@ -7,7 +7,7 @@ fn main() {
     env_logger::init().unwrap();
 
     // Initialization
-    let settings = sarosa::Settings::new("localhost:6666");
+    let settings = sarosa::Settings::new("maugan-pc.local:7777");
     let mut server = sarosa::Server::new(settings.clone());
     let mut win = sarosa::Window::new(settings.clone(), "Sarosa - Renaissance Project");
     let mut instance = sarosa::GameInstance::new(&win, settings.clone());
