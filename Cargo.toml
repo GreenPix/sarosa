@@ -4,6 +4,11 @@ name = "sarosa"
 version = "0.0.1"
 authors = ["The GreenPix developers"]
 
+[lib]
+
+name = "sarosa_engine"
+doc = true
+
 [dependencies]
 # oil = "*"
 glutin = "*"
@@ -15,6 +20,10 @@ num = "*"
 log = "*"
 env_logger = "*"
 
+[dependencies.sarosa-net]
+git = "ssh://git@gitlab.com:22/slayers-online/sarosa-net.git"
+
 [features]
 default = ["fake_server"]
 fake_server = []
+real_server = []

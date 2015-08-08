@@ -1,5 +1,6 @@
 use std::rc::Rc;
 use std::collections::HashMap;
+use std::net::ToSocketAddrs;
 use std::cell::{
     RefCell,
     Ref,
@@ -8,12 +9,14 @@ use std::cell::{
 use glium::glutin::{
     VirtualKeyCode
 };
+use sarosa_net::net::NetworkSettings;
 use events::UserEventType;
 
 #[derive(Debug, Clone)]
 pub struct Settings {
     keyboard: Rc<RefCell<KeyboardSettings>>,
     window: Rc<RefCell<WindowSettings>>,
+    network: Rc<RefCell<NetworkSettings>>,
 }
 
 #[derive(Debug)]
@@ -26,15 +29,20 @@ pub struct WindowSettings {
 }
 
 impl Settings {
-    pub fn new() -> Settings {
+    pub fn new<A: ToSocketAddrs>(addr: A) -> Settings {
         Settings {
             keyboard: Rc::new(RefCell::new(KeyboardSettings::new())),
             window: Rc::new(RefCell::new(WindowSettings::new())),
+            network: Rc::new(RefCell::new(NetworkSettings::new(addr).unwrap())),
         }
     }
 
     pub fn keyboard<'a>(&'a self) -> Ref<'a, KeyboardSettings> {
         self.keyboard.borrow()
+    }
+
+    pub fn network<'a>(&'a self) -> Ref<'a, NetworkSettings> {
+        self.network.borrow()
     }
 
     pub fn window<'a>(&'a self) -> Ref<'a, WindowSettings> {

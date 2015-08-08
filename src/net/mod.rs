@@ -1,9 +1,8 @@
-use std::thread;
-use std::thread::JoinHandle;
 use std::sync::mpsc::channel;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 use std::mem;
+use std::ops::Deref;
 use cgmath::Vector2;
 
 use events::EventSystem;
@@ -11,8 +10,6 @@ use game::GameInstance;
 use models::player::PlayerId;
 use models::player::Player;
 use events::UserEvent;
-use events::UserEventState::*;
-use events::UserEventType;
 use Settings;
 
 #[cfg(feature = "fake_server")]
@@ -20,15 +17,18 @@ use self::fake::RemoteServer;
 #[cfg(not(feature = "fake_server"))]
 use self::real::RemoteServer;
 
-#[cfg(feature = "fake_server")]
-mod fake;
 #[cfg(not(feature = "fake_server"))]
 mod real;
+#[cfg(feature = "fake_server")]
+mod fake;
+
 
 pub struct Server {
-    thread_handle: Option<JoinHandle<()>>,
     tx: Sender<UserEvent>,
     rx: Receiver<ServerEvent>,
+    tx_error: Sender<()>,
+    rx_error: Receiver<()>,
+    remote_server: Option<RemoteServer>,
     settings: Settings,
 }
 
@@ -50,51 +50,42 @@ impl Server {
     pub fn new(settings: Settings) -> Server {
         let (tx, _) = channel();
         let (_, rx) = channel();
+        let (tx_error, _) = channel();
+        let (_, rx_error) = channel();
         Server {
-            thread_handle: None,
             tx: tx,
             rx: rx,
+            rx_error: rx_error,
+            tx_error: tx_error,
+            remote_server: None,
             settings: settings,
         }
     }
 
     pub fn disconnect(&mut self) {
-        let join_handle = mem::replace(&mut self.thread_handle, None);
-        Server::disconnect_handle(join_handle, &mut self.tx);
+        self.tx_error.send(());
     }
 
-    pub fn connect(&mut self, remote: String) {
+    pub fn connect(&mut self) {
+
+        let mut remote_server = RemoteServer::new(self.settings.network().deref());
+
+        // Main channels for communication
         let (tx_user, rx_user): (Sender<UserEvent>, Receiver<UserEvent>) = channel();
         let (tx_serv, rx_serv): (Sender<ServerEvent>, Receiver<ServerEvent>) = channel();
-        let thread_handle = thread::spawn(move|| {
-            let mut server = RemoteServer::new(remote);
 
-            'run: loop {
-                // Receive user events:
-                while let Ok(ue) = rx_user.try_recv() {
-                    match ue.kind {
-                        UserEventType::Quit => {
-                            server.disconnect();
-                            break 'run;
-                        }
-                        _ => server.event_update(ue),
-                    }
-                }
+        // Channels for errors
+        let (tx_error_reader, rx_error_reader): (Sender<()>, Receiver<()>) = channel();
+        let (tx_error_writer, rx_error_writer): (Sender<()>, Receiver<()>) = channel();
 
-                // Lookup for remote events
-                for server_event in server.event_iter() {
-                    tx_serv.send(server_event).unwrap();
-                }
+        remote_server.start_writer_thread(rx_user, tx_error_writer);
+        remote_server.start_reader_thread(tx_serv, rx_error_reader);
 
-                thread::sleep_ms(30u32);
-            }
-        });
-
+        self.remote_server = Some(remote_server);
         self.rx = rx_serv;
-
-        let old_handle = mem::replace(&mut self.thread_handle, Some(thread_handle));
-        let mut old_tx = mem::replace(&mut self.tx, tx_user);
-        Server::disconnect_handle(old_handle, &mut old_tx);
+        self.rx_error = rx_error_writer;
+        self.tx_error = tx_error_reader;
+        let _ = mem::replace(&mut self.tx, tx_user);
     }
 
     pub fn event_update(&mut self, event_sys: &EventSystem) {
@@ -110,6 +101,10 @@ impl Server {
 
         let mut game_data = game_instance.game_data();
 
+        if let Ok(_) = self.rx_error.try_recv() {
+            return Err(ServerError::Disconnected);
+        }
+
         while let Ok(server_event) = self.rx.try_recv() {
             match server_event {
                 NewPlayer(pos, id) => game_data.add_player(Player { position: pos }, id),
@@ -120,15 +115,6 @@ impl Server {
         }
 
         Ok(())
-    }
-
-    fn disconnect_handle(join_handle: Option<JoinHandle<()>>, tx: &mut Sender<UserEvent>) {
-        if let Some(jh) = join_handle {
-            // Send first a message to the thread to terminate
-            tx.send(UserEvent { state: Start, kind: UserEventType::Quit}).unwrap();
-            // Wait for the other thread termination
-            jh.join().unwrap();
-        }
     }
 }
 

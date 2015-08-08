@@ -1,5 +1,6 @@
 #[macro_use] extern crate log;
 #[macro_use] extern crate glium;
+extern crate sarosa_net;
 extern crate glutin;
 extern crate cgmath;
 extern crate num;

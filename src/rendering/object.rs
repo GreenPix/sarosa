@@ -1,6 +1,4 @@
 
-use cgmath::Vector2;
-
 pub struct Material {
     stuff: u32,
 }
