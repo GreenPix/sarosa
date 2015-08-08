@@ -1,10 +1,18 @@
 [package]
 
-name = "Sarosa"
+name = "sarosa"
 version = "0.0.1"
 authors = ["The GreenPix developers"]
 
 [dependencies]
-uil = "*"
+# oil = "*"
 glutin = "*"
 glium = "*"
+clock_ticks = "*"
+cgmath = "*"
+rand = "*"
+num = "*"
+
+[features]
+default = ["fake_server"]
+fake_server = []

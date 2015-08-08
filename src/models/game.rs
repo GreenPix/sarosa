@@ -1,8 +1,7 @@
 
-use std::vec;
-use super::Player;
-use super::Map;
-use core::slice::Iter;
+use models::player::Player;
+use models::map::Map;
+use std::slice::Iter;
 
 pub struct Game {
     players: Vec<Player>,

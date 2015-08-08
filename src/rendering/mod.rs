@@ -1,19 +1,11 @@
 
-use models::Tile;
-use std::collections::HashMap;
+//use models::Tile;
 
+pub use self::win::Window;
+pub use self::win::GameRenderer;
+
+pub mod scene;
+
+mod win;
 mod object;
 mod pipeline;
-
-pub struct GameRenderer {
-    objects: HashMap<String, object::Object>,
-}
-
-impl GameRenderer {
-
-    fn new() -> GameRenderer {
-        GameRenderer {
-            objects: HashMap::new()
-        }
-    }
-}

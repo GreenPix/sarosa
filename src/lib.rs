@@ -1,4 +1,17 @@
+#[macro_use] extern crate glium;
+extern crate glutin;
+extern crate cgmath;
+extern crate num;
 
-extern crate uil;
+pub use self::models::settings::Settings;
+pub use self::rendering::Window;
+pub use self::net::Server;
+pub use self::game::GameLoop;
+pub use self::game::GameInstance;
 
-mod util;
+pub mod models;
+
+mod game;
+mod net;
+mod events;
+mod rendering;

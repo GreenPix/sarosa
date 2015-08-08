@@ -1,4 +1,4 @@
-# Client (nom à déterminer)
+# Sarosa
 
 ## Architecture
 
