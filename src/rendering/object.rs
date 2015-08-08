@@ -6,7 +6,6 @@ pub struct Material {
 }
 
 pub struct Object {
-    position: Vector2<f32>,
     material: Material,
     //data: RenderData,
 }

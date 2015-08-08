@@ -7,7 +7,9 @@ use std::mem;
 use cgmath::Vector2;
 
 use events::EventSystem;
+use game::GameInstance;
 use models::player::PlayerId;
+use models::player::Player;
 use events::UserEvent;
 use events::UserEventState::*;
 use events::UserEventType;
@@ -30,7 +32,12 @@ pub struct Server {
     settings: Settings,
 }
 
-#[allow(dead_code)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub enum ServerError {
+    Disconnected,
+    GameIsOver,
+}
+
 enum ServerEvent {
     DisconnectedFromServer,
     NewPlayer(Vector2<f32>, PlayerId),
@@ -96,12 +103,23 @@ impl Server {
         }
     }
 
-    pub fn remote_update(&mut self) {
+    pub fn remote_update(&mut self, game_instance: &mut GameInstance) -> Result<(), ServerError> {
+        use self::ServerEvent::NewPlayer;
+        use self::ServerEvent::Position;
+        use self::ServerEvent::DisconnectedFromServer;
+
+        let mut game_data = game_instance.game_data();
+
         while let Ok(server_event) = self.rx.try_recv() {
             match server_event {
-                _ => println!("Do something here"),
+                NewPlayer(pos, id) => game_data.add_player(Player { position: pos }, id),
+                Position(pos, id)  => game_data.add_player(Player { position: pos }, id),
+                DisconnectedFromServer => return Err(ServerError::Disconnected),
+                _ => (),
             }
         }
+
+        Ok(())
     }
 
     fn disconnect_handle(join_handle: Option<JoinHandle<()>>, tx: &mut Sender<UserEvent>) {
@@ -111,5 +129,11 @@ impl Server {
             // Wait for the other thread termination
             jh.join().unwrap();
         }
+    }
+}
+
+impl Drop for Server {
+    fn drop(&mut self) {
+        self.disconnect();
     }
 }

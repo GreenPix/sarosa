@@ -17,16 +17,17 @@ impl GameLoop {
 
     pub fn run_loop(&mut self, window: &mut Window, instance: &mut GameInstance, server: &mut Server)
     {
+        debug!("Game has started");
+
         let mut accumulator = 0;
         let mut previous_clock = clock_ticks::precise_time_ns();
         let mut event_sys = EventSystem::default();
 
         loop {
+            // Lookup all events:
             window.poll_events(&mut event_sys);
 
-            // Lookup all events:
-
-            // First the server
+            // Push then to the server
             server.event_update(&event_sys);
 
             // Then the game instance
@@ -38,8 +39,16 @@ impl GameLoop {
             // Mark all events as consumed
             event_sys.clear();
 
+            // Remote update:
+            match server.remote_update(instance) {
+                Err(_) => break,
+                _ => ()
+            }
+
+            // Frame update
             instance.frame_update(window);
 
+            // Fixed update
             let now = clock_ticks::precise_time_ns();
             accumulator += now - previous_clock;
             previous_clock = now;
@@ -53,5 +62,7 @@ impl GameLoop {
 
             thread::sleep_ms(((FIXED_TIME_STAMP - accumulator) / 1000000) as u32);
         }
+
+        debug!("Game has finished");
     }
 }

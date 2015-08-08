@@ -12,6 +12,8 @@ clock_ticks = "*"
 cgmath = "*"
 rand = "*"
 num = "*"
+log = "*"
+env_logger = "*"
 
 [features]
 default = ["fake_server"]
