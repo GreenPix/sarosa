@@ -62,7 +62,7 @@ impl RemoteServer {
                     // Receive user events:
                     let id = player_id.load(Ordering::Relaxed);
 
-                    // TODO:
+                    // TODO: Clean that mess
 
                     while let Ok(ue) = rx_user.try_recv() {
                         let state = ue.state == UserEventState::Start;

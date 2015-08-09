@@ -1,10 +1,13 @@
 use std::ops::Deref;
 use std::ops::DerefMut;
+use std::collections::HashMap;
+use std::collections::hash_map::Entry::*;
 //use glutin::
 
 #[derive(Default)]
 pub struct EventSystem {
     queue: Vec<UserEvent>,
+    seen_events: HashMap<UserEventType, UserEvent>,
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
@@ -35,7 +38,18 @@ pub trait PushEvent {
 
 impl PushEvent for EventSystem {
     fn push(&mut self, e: UserEvent) {
-        self.queue.push(e);
+        match self.seen_events.entry(e.kind) {
+            Occupied(mut old_e) => {
+                if old_e.get().state != e.state {
+                    self.queue.push(e);
+                    old_e.insert(e);
+                }
+            }
+            Vacant(mut free) => {
+                free.insert(e);
+                self.queue.push(e);
+            }
+        }
     }
 }
 
