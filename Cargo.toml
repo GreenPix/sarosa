@@ -25,8 +25,3 @@ rustc-serialize = "0.3"
 
 [dependencies.sarosa-net]
 git = "ssh://git@gitlab.com:22/slayers-online/sarosa-net.git"
-
-[features]
-default = ["fake_server"]
-fake_server = []
-real_server = []

@@ -1,6 +1,7 @@
 use std::rc::Rc;
 use std::collections::HashMap;
 use std::net::ToSocketAddrs;
+use std::io;
 use std::cell::{
     RefCell,
     Ref,
@@ -9,7 +10,6 @@ use std::cell::{
 use glium::glutin::{
     VirtualKeyCode
 };
-use sarosa_net::net::NetworkSettings;
 use events::UserEventType;
 
 #[derive(Debug, Clone)]
@@ -28,12 +28,18 @@ pub struct WindowSettings {
     height: u32,
 }
 
+#[derive(Debug)]
+pub struct NetworkSettings {
+    address: String,
+    offline_server: bool,
+}
+
 impl Settings {
-    pub fn new<A: ToSocketAddrs>(addr: A) -> Settings {
+    pub fn new(addr: String, offline_server: bool) -> Settings {
         Settings {
             keyboard: Rc::new(RefCell::new(KeyboardSettings::new())),
             window: Rc::new(RefCell::new(WindowSettings::new())),
-            network: Rc::new(RefCell::new(NetworkSettings::new(addr).unwrap())),
+            network: Rc::new(RefCell::new(NetworkSettings::new(addr, offline_server))),
         }
     }
 
@@ -59,6 +65,28 @@ impl Settings {
 
     pub fn all_mut<'a>(&'a mut self) -> (RefMut<'a, WindowSettings>, RefMut<'a, KeyboardSettings>) {
         (self.window.borrow_mut(), self.keyboard.borrow_mut())
+    }
+}
+
+impl NetworkSettings {
+
+    pub fn new(addr: String, offline_server: bool) -> NetworkSettings {
+        NetworkSettings {
+            address: addr,
+            offline_server: offline_server,
+        }
+    }
+
+    pub fn offline_server(&self) -> bool {
+        self.offline_server
+    }
+}
+
+impl ToSocketAddrs for NetworkSettings {
+    type Iter = <&'static str as ToSocketAddrs>::Iter;
+
+    fn to_socket_addrs(&self) -> io::Result<Self::Iter> {
+        self.address.to_socket_addrs()
     }
 }
 

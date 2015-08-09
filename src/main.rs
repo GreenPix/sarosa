@@ -14,21 +14,21 @@ Sarosa client.
 
 Usage:
   sarosa [--host <host> --port <port>]
-  sarosa --fake-server
+  sarosa --offline
   sarosa (-h | --help)
   sarosa --version
 
 Options:
   -h --help         Show this screen.
   --version         Show version.
-  --fake-server     Run the fake server instead.
+  --offline         Run a self-hosted offline server.
   --port <port>     Server port     [default: 7777].
   --host <host>     Server Hostname [default: localhost].
 ";
 
 #[derive(Debug, RustcDecodable)]
 struct Args {
-    flag_fake_server: bool,
+    flag_offline: bool,
     flag_host: String,
     flag_port: u16,
     flag_version: bool,
@@ -50,7 +50,7 @@ fn main() {
     address.push_str(":"); address.push_str(args.flag_port.to_string().deref());
 
     // Initialization
-    let settings = sarosa::Settings::new("maugan-pc.local:7777");
+    let settings = sarosa::Settings::new(address, args.flag_offline);
     let mut server = sarosa::Server::new(settings.clone());
     let mut win = sarosa::Window::new(settings.clone(), "Sarosa - Renaissance Project");
     let mut instance = sarosa::GameInstance::new(&win, settings.clone());

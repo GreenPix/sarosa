@@ -19,11 +19,13 @@ use sarosa_net::net::{
     NetworkReader,
     NetworkSettings,
 };
+use models::settings;
 use sarosa_net::messages::Notification::*;
 use sarosa_net::messages::Order;
 use sarosa_net::messages::TargettedOrder;
 use sarosa_net::messages::Direction;
 use super::ServerEvent;
+use super::RemoteServerHandle;
 
 pub struct RemoteServer {
     writer: Option<NetworkWriter>,
@@ -31,10 +33,13 @@ pub struct RemoteServer {
     this_player_id: Arc<AtomicUsize>,
 }
 
+impl RemoteServerHandle for RemoteServer {}
+
 impl RemoteServer {
 
-    pub fn new(settings: &NetworkSettings) -> RemoteServer {
-        let (reader, writer) = connect(settings).unwrap();
+    pub fn new(settings: &settings::NetworkSettings) -> RemoteServer {
+        let sets = NetworkSettings::new(settings).unwrap();
+        let (reader, writer) = connect(&sets).unwrap();
         RemoteServer {
             writer: Some(writer),
             reader: Some(reader),
@@ -62,6 +67,7 @@ impl RemoteServer {
                             UserEventType::CmdLeft => Direction::West,
                             UserEventType::CmdRight => Direction::East,
                         };
+                        let state = ue.state;
                         match writer.write(&TargettedOrder {
                             target: id as u64,
                             order: Order::Walk(Some(direction)),

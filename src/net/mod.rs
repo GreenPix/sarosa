@@ -6,29 +6,26 @@ use std::ops::Deref;
 use cgmath::Vector2;
 
 use events::EventSystem;
-use game::GameInstance;
+use core::GameInstance;
 use models::player::PlayerId;
 use models::player::Player;
 use events::UserEvent;
 use Settings;
 
-#[cfg(feature = "fake_server")]
-use self::fake::RemoteServer;
-#[cfg(not(feature = "fake_server"))]
-use self::real::RemoteServer;
-
-#[cfg(not(feature = "fake_server"))]
 mod real;
-#[cfg(feature = "fake_server")]
 mod fake;
 
+trait RemoteServerHandle {}
+
+struct NullServerHandle;
+impl RemoteServerHandle for NullServerHandle {}
 
 pub struct Server {
     tx: Sender<UserEvent>,
     rx: Receiver<ServerEvent>,
     tx_error: Sender<()>,
     rx_error: Receiver<()>,
-    remote_server: Option<RemoteServer>,
+    remote_server: Box<RemoteServerHandle>,
     settings: Settings,
 }
 
@@ -57,7 +54,7 @@ impl Server {
             rx: rx,
             rx_error: rx_error,
             tx_error: tx_error,
-            remote_server: None,
+            remote_server: Box::new(NullServerHandle),
             settings: settings,
         }
     }
@@ -67,8 +64,17 @@ impl Server {
     }
 
     pub fn connect(&mut self) {
+        let offline_server = self.settings.network().offline_server();
+        if offline_server {
+            self.connect_offline();
+        } else {
+            self.connect_real();
+        }
+    }
 
-        let mut remote_server = RemoteServer::new(self.settings.network().deref());
+    fn connect_offline(&mut self) {
+
+        let mut remote_server = fake::RemoteServer::new();
 
         // Main channels for communication
         let (tx_user, rx_user): (Sender<UserEvent>, Receiver<UserEvent>) = channel();
@@ -81,7 +87,29 @@ impl Server {
         remote_server.start_writer_thread(rx_user, tx_error_writer);
         remote_server.start_reader_thread(tx_serv, rx_error_reader);
 
-        self.remote_server = Some(remote_server);
+        self.remote_server = Box::new(remote_server) as Box<RemoteServerHandle>;
+        self.rx = rx_serv;
+        self.rx_error = rx_error_writer;
+        self.tx_error = tx_error_reader;
+        let _ = mem::replace(&mut self.tx, tx_user);
+    }
+
+    fn connect_real(&mut self) {
+
+        let mut remote_server = real::RemoteServer::new(self.settings.network().deref());
+
+        // Main channels for communication
+        let (tx_user, rx_user): (Sender<UserEvent>, Receiver<UserEvent>) = channel();
+        let (tx_serv, rx_serv): (Sender<ServerEvent>, Receiver<ServerEvent>) = channel();
+
+        // Channels for errors
+        let (tx_error_reader, rx_error_reader): (Sender<()>, Receiver<()>) = channel();
+        let (tx_error_writer, rx_error_writer): (Sender<()>, Receiver<()>) = channel();
+
+        remote_server.start_writer_thread(rx_user, tx_error_writer);
+        remote_server.start_reader_thread(tx_serv, rx_error_reader);
+
+        self.remote_server = Box::new(remote_server) as Box<RemoteServerHandle>;
         self.rx = rx_serv;
         self.rx_error = rx_error_writer;
         self.tx_error = tx_error_reader;
