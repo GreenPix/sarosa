@@ -1,10 +1,53 @@
 extern crate sarosa_engine as sarosa;
 extern crate env_logger;
+extern crate rustc_serialize;
+extern crate docopt;
 
+use docopt::Docopt;
+use std::ops::Deref;
+
+// Version support
+include!(concat!(env!("OUT_DIR"), "/sarosa_version.rs"));
+
+static USAGE: &'static str = "
+Sarosa client.
+
+Usage:
+  sarosa [--host <host> --port <port>]
+  sarosa --fake-server
+  sarosa (-h | --help)
+  sarosa --version
+
+Options:
+  -h --help         Show this screen.
+  --version         Show version.
+  --fake-server     Run the fake server instead.
+  --port <port>     Server port     [default: 7777].
+  --host <host>     Server Hostname [default: localhost].
+";
+
+#[derive(Debug, RustcDecodable)]
+struct Args {
+    flag_fake_server: bool,
+    flag_host: String,
+    flag_port: u16,
+    flag_version: bool,
+}
 
 fn main() {
+    let args: Args = Docopt::new(USAGE)
+                            .and_then(|d| d.decode())
+                            .unwrap_or_else(|e| e.exit());
+
+    if args.flag_version {
+        println!("{}", sarosa_version());
+        return;
+    }
 
     env_logger::init().unwrap();
+
+    let mut address = args.flag_host;
+    address.push_str(":"); address.push_str(args.flag_port.to_string().deref());
 
     // Initialization
     let settings = sarosa::Settings::new("maugan-pc.local:7777");

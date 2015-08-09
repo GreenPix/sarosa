@@ -3,6 +3,7 @@
 name = "sarosa"
 version = "0.0.1"
 authors = ["The GreenPix developers"]
+build = "build.rs"
 
 [lib]
 
@@ -19,6 +20,8 @@ rand = "*"
 num = "*"
 log = "*"
 env_logger = "*"
+docopt = "0.6.*"
+rustc-serialize = "0.3"
 
 [dependencies.sarosa-net]
 git = "ssh://git@gitlab.com:22/slayers-online/sarosa-net.git"
