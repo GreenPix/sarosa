@@ -107,41 +107,36 @@ impl RemoteServer {
                     }
 
                     // Lookup for remote events
-                    match reader.read() {
-                        Ok(server_event) => {
-                            // TODO move that logic somewhere else
-                            match server_event {
-                                ThisIsYou(id) => {
-                                    if this_player_id.is_none() {
-                                        debug!("ThisIsYou({}) received", id);
-                                        this_player_id = Some(id);
-                                        player_id.store(id as usize, Ordering::Relaxed);
+                    while let Ok(server_event) = reader.read() {
+                        // TODO move that logic somewhere else
+                        match server_event {
+                            ThisIsYou(id) => {
+                                if this_player_id.is_none() {
+                                    debug!("ThisIsYou({}) received", id);
+                                    this_player_id = Some(id);
+                                    player_id.store(id as usize, Ordering::Relaxed);
+                                }
+                            }
+                            Location {x, y, entity} => {
+                                let xf = x.to_f32().unwrap_or(0f32) / 1000f32;
+                                let yf = y.to_f32().unwrap_or(0f32) / 1000f32;
+                                if let &Some(me) = &this_player_id {
+                                    let server_event = if me == entity {
+                                        ServerEvent::Position(Vector2::new(xf, yf), THIS_PLAYER)
+                                    } else {
+                                        ServerEvent::Position(Vector2::new(xf, yf), entity)
+                                    };
+                                    match tx_serv.send(server_event) {
+                                        Err(_) => break 'run,
+                                        _ => (),
                                     }
                                 }
-                                Location {x, y, entity} => {
-                                    let xf = x.to_f32().unwrap_or(0f32) / 1000f32;
-                                    let yf = y.to_f32().unwrap_or(0f32) / 1000f32;
-                                    if let &Some(me) = &this_player_id {
-                                        let server_event = if me == entity {
-                                            ServerEvent::Position(Vector2::new(xf, yf), THIS_PLAYER)
-                                        } else {
-                                            ServerEvent::Position(Vector2::new(xf, yf), entity)
-                                        };
-                                        match tx_serv.send(server_event) {
-                                            Err(_) => break 'run,
-                                            _ => (),
-                                        }
-                                    }
-                                },
-                                _ => (),
-                            }
-                        }
-                        Err(_) => {
-                            break 'run;
+                            },
+                            _ => (),
                         }
                     }
 
-                    thread::sleep_ms(10u32);
+                    thread::sleep_ms(8u32);
                 }
             });
         }
