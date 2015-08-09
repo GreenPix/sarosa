@@ -1,4 +1,5 @@
 use std::rc::Rc;
+use std::ops::Deref;
 use std::collections::HashMap;
 use std::net::ToSocketAddrs;
 use std::io;
@@ -79,6 +80,10 @@ impl NetworkSettings {
 
     pub fn offline_server(&self) -> bool {
         self.offline_server
+    }
+
+    pub fn addr(&self) -> &str {
+        self.address.deref()
     }
 }
 

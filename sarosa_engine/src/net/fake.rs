@@ -15,7 +15,6 @@ use events::{
 };
 use events::UserEventType::*;
 use events::UserEventState::*;
-use models::settings::NetworkSettings;
 
 use super::ServerEvent;
 use super::RemoteServerHandle;

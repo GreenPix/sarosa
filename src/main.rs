@@ -57,7 +57,6 @@ fn main() {
     let mut game = sarosa::GameLoop::new();
 
     // Try to connect to the server
-    println!("Connecting to server...");
     server.connect();
 
     // Run the game.
