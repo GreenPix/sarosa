@@ -2,10 +2,16 @@ extern crate clock_ticks;
 
 use std::thread;
 use super::GameInstance;
-use super::GameRunState;
 use events::EventSystem;
 use Window;
 use Server;
+
+pub mod deferred;
+
+pub enum LoopState {
+    Continue,
+    Break,
+}
 
 pub struct GameLoop;
 
@@ -32,8 +38,8 @@ impl GameLoop {
 
             // Then the game instance
             match instance.event_update(&event_sys) {
-                GameRunState::Stopped => break,
-                GameRunState::Running => ()
+                LoopState::Break => break,
+                LoopState::Continue => ()
             };
 
             // Mark all events as consumed

@@ -2,17 +2,11 @@
 name = "sarosa"
 version = "0.0.1"
 dependencies = [
- "cgmath 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "clock_ticks 0.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "docopt 0.6.70 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "glium 0.8.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "glutin 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "num 0.1.25 (registry+https://github.com/rust-lang/crates.io-index)",
- "rand 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
- "sarosa-net 0.1.0 (git+ssh://git@gitlab.com/slayers-online/sarosa-net.git)",
+ "sarosa_engine 0.0.1",
 ]
 
 [[package]]
@@ -439,6 +433,20 @@ dependencies = [
  "capnp 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "capnpc 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "sarosa_engine"
+version = "0.0.1"
+dependencies = [
+ "cgmath 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clock_ticks 0.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "glium 0.8.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "glutin 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "log 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "num 0.1.25 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rand 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "sarosa-net 0.1.0 (git+ssh://git@gitlab.com/slayers-online/sarosa-net.git)",
 ]
 
 [[package]]

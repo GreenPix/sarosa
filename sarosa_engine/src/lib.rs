@@ -8,12 +8,13 @@ extern crate num;
 pub use self::models::settings::Settings;
 pub use self::rendering::Window;
 pub use self::net::Server;
-pub use self::game::GameLoop;
-pub use self::game::GameInstance;
+pub use self::core::GameLoop;
+pub use self::core::GameInstance;
 
 pub mod models;
+pub mod loader;
 
-mod game;
+mod core;
 mod net;
 mod events;
 mod rendering;

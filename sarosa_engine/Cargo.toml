@@ -1,0 +1,18 @@
+[package]
+
+name = "sarosa_engine"
+version = "0.0.1"
+authors = ["The GreenPix developers"]
+
+[dependencies]
+# oil = "*"
+glutin = "*"
+glium = "*"
+clock_ticks = "*"
+cgmath = "*"
+rand = "*"
+num = "*"
+log = "*"
+
+[dependencies.sarosa-net]
+git = "ssh://git@gitlab.com:22/slayers-online/sarosa-net.git"

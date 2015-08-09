@@ -5,23 +5,13 @@ version = "0.0.1"
 authors = ["The GreenPix developers"]
 build = "build.rs"
 
-[lib]
-
-name = "sarosa_engine"
-doc = true
-
 [dependencies]
 # oil = "*"
-glutin = "*"
-glium = "*"
-clock_ticks = "*"
-cgmath = "*"
-rand = "*"
-num = "*"
 log = "*"
 env_logger = "*"
 docopt = "0.6.*"
 rustc-serialize = "0.3"
 
-[dependencies.sarosa-net]
-git = "ssh://git@gitlab.com:22/slayers-online/sarosa-net.git"
+[dependencies.sarosa_engine]
+path = "./sarosa_engine"
+version = "=0.0.1"

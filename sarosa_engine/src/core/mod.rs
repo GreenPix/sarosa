@@ -13,12 +13,8 @@ use Window;
 use Settings;
 
 pub use self::loops::GameLoop;
-mod loops;
-
-pub enum GameRunState {
-    Running,
-    Stopped,
-}
+pub use self::loops::LoopState;
+pub mod loops;
 
 pub struct GameInstance {
     renderer: GameRenderer,
@@ -67,14 +63,14 @@ impl GameInstance {
         }
     }
 
-    fn event_update(&mut self, event_sys: &EventSystem) -> GameRunState {
+    fn event_update(&mut self, event_sys: &EventSystem) -> LoopState {
         for &e in event_sys.iter() {
             match e.kind {
-                UserEventType::Quit => return GameRunState::Stopped,
+                UserEventType::Quit => return LoopState::Break,
                 _ => (),
             }
         }
-        GameRunState::Running
+        LoopState::Continue
     }
 
     fn frame_update(&mut self, window: &mut Window) {
