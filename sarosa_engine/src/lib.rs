@@ -1,3 +1,5 @@
+#![feature(result_expect)]
+
 #[macro_use] extern crate log;
 #[macro_use] extern crate glium;
 extern crate sarosa_net;

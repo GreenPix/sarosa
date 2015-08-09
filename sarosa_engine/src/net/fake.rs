@@ -66,7 +66,9 @@ impl RemoteServer {
     pub fn start_writer_thread(&mut self, rx_user: Receiver<UserEvent>, _: Sender<()>) {
 
         let arc_mutex_crazy_frog = self.data.clone();
-        thread::spawn(move|| {
+        thread::Builder::new()
+            .name("NetworkFake - Writer".to_string())
+            .spawn(move|| {
 
             'run: loop {
 
@@ -87,25 +89,30 @@ impl RemoteServer {
 
                 thread::sleep_ms(30u32);
             }
-        });
+        }).expect("Couldn't start thread");
     }
 
     pub fn start_reader_thread(&mut self, tx_serv: Sender<ServerEvent>, _: Receiver<()>) {
 
         let arc_mutex_crazy_frog = self.data.clone();
-        thread::spawn(move|| {
+        thread::Builder::new()
+            .name("NetworkFake - Reader".to_string())
+            .spawn(move|| {
 
             'run: loop {
                 // Lookup for remote events
                 {
                     let mut server = arc_mutex_crazy_frog.lock().unwrap();
                     for server_event in server.event_iter() {
-                        tx_serv.send(server_event).unwrap();
+                        match tx_serv.send(server_event) {
+                            Err(_) => break 'run,
+                            _ => (),
+                        }
                     }
                 }
 
                 thread::sleep_ms(20u32);
             }
-        });
+        }).expect("Couldn't start thread");
     }
 }

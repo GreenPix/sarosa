@@ -51,7 +51,9 @@ impl RemoteServer {
 
         let player_id = self.this_player_id.clone();
         if let Some(mut writer) = mem::replace(&mut self.writer, None) {
-            thread::spawn(move|| {
+            thread::Builder::new()
+                .name("Network - Writer".to_string())
+                .spawn(move|| {
 
                 'run: loop {
                     // Receive user events:
@@ -94,7 +96,7 @@ impl RemoteServer {
 
                     thread::sleep_ms(30u32);
                 }
-            });
+            }).expect("Couldn't start thread");
         }
     }
 
@@ -102,7 +104,9 @@ impl RemoteServer {
 
         let player_id = self.this_player_id.clone();
         if let Some(mut reader) = mem::replace(&mut self.reader, None) {
-            thread::spawn(move|| {
+            thread::Builder::new()
+                .name("Network - Reader".to_string())
+                .spawn(move|| {
 
                 let mut this_player_id = None;
 
@@ -144,7 +148,7 @@ impl RemoteServer {
 
                     thread::sleep_ms(8u32);
                 }
-            });
+            }).expect("Couldn't start thread");
         }
     }
 }
