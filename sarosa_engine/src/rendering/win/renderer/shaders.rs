@@ -18,13 +18,13 @@ pub const VERTEX_140: &'static str = r"
         uint sprite_y = sprite_x / uint(9);
         sprite_x = sprite_x % uint(9);
         if (gl_VertexID % 4 == 0) {
-            v_tex_coords = vec2(float(sprite_x) * 1.0 / 9,     float(sprite_y + uint(1)) * 1.0 / 4);
-        } else if (gl_VertexID % 4 == 1) {
-            v_tex_coords = vec2(float(sprite_x + uint(1)) * 1.0 / 9, float(sprite_y + uint(1)) * 1.0 / 4);
-        } else if (gl_VertexID % 4 == 2) {
             v_tex_coords = vec2(float(sprite_x) * 1.0 / 9,     float(sprite_y) * 1.0 / 4);
-        } else {
+        } else if (gl_VertexID % 4 == 1) {
             v_tex_coords = vec2(float(sprite_x + uint(1)) * 1.0 / 9, float(sprite_y) * 1.0 / 4);
+        } else if (gl_VertexID % 4 == 2) {
+            v_tex_coords = vec2(float(sprite_x) * 1.0 / 9,     float(sprite_y + uint(1)) * 1.0 / 4);
+        } else {
+            v_tex_coords = vec2(float(sprite_x + uint(1)) * 1.0 / 9, float(sprite_y + uint(1)) * 1.0 / 4);
         }
         v_tex_id = i_tex_id / uint(9 * 4);
     }
@@ -38,7 +38,7 @@ pub const FRAGMENT_140: &'static str = r"
     out vec4 f_color;
     void main() {
         vec3 gamma = vec3(2.2);
-        vec4 tex_color = texture(tex, vec3(v_tex_coords, float(v_tex_id)));
+        vec4 tex_color = texture(tex, vec3(v_tex_coords.x, 1.0 - v_tex_coords.y, float(v_tex_id)));
         f_color = vec4(pow(tex_color.rgb, gamma), tex_color.a);
     }
 ";
