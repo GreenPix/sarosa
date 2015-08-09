@@ -11,6 +11,7 @@ use num::traits::ToPrimitive;
 use models::player::THIS_PLAYER;
 use events::{
     UserEventType,
+    UserEventState,
     UserEvent,
 };
 use sarosa_net::net::{
@@ -55,6 +56,8 @@ impl RemoteServer {
                 .name("Network - Writer".to_string())
                 .spawn(move|| {
 
+                let mut commands_states = [false; 4];
+
                 'run: loop {
                     // Receive user events:
                     let id = player_id.load(Ordering::Relaxed);
@@ -62,17 +65,33 @@ impl RemoteServer {
                     // TODO:
 
                     while let Ok(ue) = rx_user.try_recv() {
+                        let state = ue.state == UserEventState::Start;
                         let direction = match ue.kind {
                             UserEventType::Quit => break 'run,
-                            UserEventType::CmdUp => Direction::North,
-                            UserEventType::CmdDown => Direction::South,
-                            UserEventType::CmdLeft => Direction::West,
-                            UserEventType::CmdRight => Direction::East,
+                            UserEventType::CmdUp => {
+                                commands_states[0] = state;
+                                Direction::North
+                            }
+                            UserEventType::CmdDown => {
+                                commands_states[1] = state;
+                                Direction::South
+                            }
+                            UserEventType::CmdLeft => {
+                                commands_states[2] = state;
+                                Direction::West
+                            }
+                            UserEventType::CmdRight => {
+                                commands_states[3] = state;
+                                Direction::East
+                            }
                         };
-                        let state = ue.state;
                         match writer.write(&TargettedOrder {
                             target: id as u64,
-                            order: Order::Walk(Some(direction)),
+                            order: if commands_states.iter().any(|&b| b) {
+                                Order::Walk(Some(direction))
+                            } else {
+                                Order::Walk(None)
+                            },
                         }) {
                             Err(e) => {
                                 debug!("io::Error {}", e);
