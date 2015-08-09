@@ -45,7 +45,7 @@ impl PushEvent for EventSystem {
                     old_e.insert(e);
                 }
             }
-            Vacant(mut free) => {
+            Vacant(free) => {
                 free.insert(e);
                 self.queue.push(e);
             }

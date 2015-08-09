@@ -8,6 +8,7 @@ authors = ["The GreenPix developers"]
 # oil = "*"
 glutin = "*"
 glium = "*"
+image = "*"
 clock_ticks = "*"
 cgmath = "*"
 rand = "*"

@@ -74,13 +74,12 @@ impl GameInstance {
     }
 
     fn frame_update(&mut self, window: &mut Window) {
-        // TODO
         self.renderer.update_gpu_mem(&self.game_data);
         self.renderer.render(&self.world_scene, window);
     }
 
-    fn fixed_update(&mut self, _: u64) { //fixed_timestamp: u64) {
-        // TODO
+    fn fixed_update(&mut self, fixed_timestamp: u64) {
+        self.renderer.fixed_update(fixed_timestamp);
     }
 
 }

@@ -5,6 +5,7 @@
 extern crate sarosa_net;
 extern crate glutin;
 extern crate cgmath;
+extern crate image;
 extern crate num;
 
 pub use self::models::settings::Settings;
@@ -20,3 +21,4 @@ mod core;
 mod net;
 mod events;
 mod rendering;
+mod animation;

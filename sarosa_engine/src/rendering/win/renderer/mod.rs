@@ -1,17 +1,25 @@
 extern crate rand;
 
 use std::cmp;
-use glium::{Surface};
+use image;
+use glium::Surface;
 use glium::index::{
     PrimitiveType,
     IndexBuffer
 };
+use glium::draw_parameters::DrawParameters;
 use glium::texture::Texture2dArray;
+use glium::draw_parameters::BlendingFunction::Addition;
+use glium::draw_parameters::LinearBlendingFactor::{
+    SourceAlpha,
+    OneMinusSourceAlpha,
+};
 use glium::program::Program;
 use glium::{
     VertexBuffer
 };
 use Window;
+use animation::AnimationController;
 use models::game::GameData;
 use rendering::scene::WorldScene;
 
@@ -23,6 +31,7 @@ pub struct GameRenderer {
     index_buffer: IndexBuffer<u16>,
     texture: Texture2dArray,
     nb_sprites: usize,
+    animator: AnimationController,
 }
 
 const MAX_SPRITES: usize = 1024;
@@ -36,11 +45,18 @@ impl GameRenderer {
         // generating a bunch of unicolor 2D images that will be used for a texture
         // we store all of them in a `Texture2dArray`
         let texture = {
-            let images = (0 .. 64).map(|_| {
-                let color1: (f32, f32, f32) = (rand::random(), rand::random(), rand::random());
-                let color2: (f32, f32, f32) = (rand::random(), rand::random(), rand::random());
-                vec![vec![color1], vec![color2]]
-            }).collect::<Vec<_>>();
+            // TODO(Nemikolh): Use a ResourceManager to load
+            // them before being here and do something clever with it.
+            let images = vec![
+                image::open("./assets/players/Kiwan.png").unwrap(),
+                image::open("./assets/players/Vurf.png").unwrap()
+            ];
+
+            // (0 .. 64).map(|_| {
+            //     let color1: (f32, f32, f32) = (rand::random(), rand::random(), rand::random());
+            //     let color2: (f32, f32, f32) = (rand::random(), rand::random(), rand::random());
+            //     vec![vec![color1], vec![color2]]
+            // }).collect::<Vec<_>>();
 
             Texture2dArray::new(display, images).unwrap()
         };
@@ -48,8 +64,9 @@ impl GameRenderer {
         // building the vertex buffer and index buffers that will be filled with the data of
         // the sprites
         let (vertex_buffer, index_buffer) = {
-            let vb: VertexBuffer<shaders::Vertex> = VertexBuffer::empty_dynamic(display,
-                                                                            MAX_SPRITES * 4).unwrap();
+            let vb: VertexBuffer<shaders::Vertex> =
+                VertexBuffer::empty_dynamic(display, MAX_SPRITES * 4).unwrap();
+
             let mut ib_data = Vec::with_capacity(MAX_SPRITES * 6);
 
             for num in 0..MAX_SPRITES {
@@ -88,6 +105,7 @@ impl GameRenderer {
             index_buffer: index_buffer,
             texture: texture,
             nb_sprites: 0,
+            animator: AnimationController::new(),
         }
     }
 
@@ -99,6 +117,7 @@ impl GameRenderer {
         for (sprite, player) in self.vertex_buffer.map().chunks_mut(4).zip(game_data.iter_players()) {
             let tex_id: u32 = rand::random();
             let tex_id = tex_id % self.texture.get_array_size().unwrap();
+            let tex_id = tex_id * 9 * 4 + 19;
             let (x, y) = (player.position.x, player.position.y);
             // let position: (f32, f32) = (rand::random(), rand::random());
             // let position: (f32, f32) = (position.0 * 2.0 - 1.0, position.1 * 2.0 - 1.0);
@@ -112,8 +131,8 @@ impl GameRenderer {
             sprite[3].i_position[0] = x + 0.1;
             sprite[3].i_position[1] = y - 0.1;
             sprite[0].i_tex_id = tex_id;
-            sprite[2].i_tex_id = tex_id;
             sprite[1].i_tex_id = tex_id;
+            sprite[2].i_tex_id = tex_id;
             sprite[3].i_tex_id = tex_id;
         }
     }
@@ -155,12 +174,22 @@ impl GameRenderer {
 
         // drawing a frame
         let mut target = window.display.draw();
-        target.clear_color(0.0, 0.0, 0.0, 0.0);
+        target.clear_color(0.11, 0.31, 0.11, 1.0);
         target.draw(&self.vertex_buffer, &ib_slice,
-                    &self.program, &uniform! { tex: &self.texture }, &Default::default()).unwrap();
+                    &self.program, &uniform! { tex: &self.texture }, &DrawParameters {
+                        blending_function: Some(
+                            Addition { source: SourceAlpha, destination: OneMinusSourceAlpha }
+                        ),
+                        .. Default::default()
+                    }).unwrap();
 
         // Render scene:
         world_scene.render(&target);
         target.finish().unwrap();
     }
+
+    pub fn fixed_update(&mut self, fixed_timestamp: u64) {
+        self.animator.update(fixed_timestamp);
+    }
+
 }
