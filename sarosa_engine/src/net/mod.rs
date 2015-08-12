@@ -66,13 +66,13 @@ impl Server {
     pub fn connect(&mut self) {
         let offline_server = self.settings.network().offline_server();
         if offline_server {
-            println!("Starting in Offline mode");
+            info!("Starting in Offline mode");
             self.connect_offline();
         } else {
             {
                 let network = self.settings.network();
                 let address = network.addr();
-                println!("Connecting to server `{}`", address);
+                info!("Connecting to server `{}`", address);
             }
             self.connect_real();
         }

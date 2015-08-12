@@ -1,5 +1,5 @@
 extern crate sarosa_engine as sarosa;
-extern crate env_logger;
+extern crate log4rs;
 extern crate rustc_serialize;
 extern crate docopt;
 
@@ -44,7 +44,7 @@ fn main() {
         return;
     }
 
-    env_logger::init().unwrap();
+    log4rs::init_file("log.toml", Default::default()).unwrap();
 
     let mut address = args.flag_host;
     address.push_str(":"); address.push_str(args.flag_port.to_string().deref());

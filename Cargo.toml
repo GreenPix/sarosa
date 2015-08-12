@@ -7,8 +7,7 @@ build = "build.rs"
 
 [dependencies]
 # oil = "*"
-log = "*"
-env_logger = "*"
+log4rs = "*"
 docopt = "0.6.*"
 rustc-serialize = "0.3"
 
