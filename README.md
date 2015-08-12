@@ -4,8 +4,8 @@
 
 Requirements:
 
-* install Cap'n Proto. Follow the installation guide [here](https://capnproto.org/install.html)
-* install [Rust](https://doc.rust-lang.org/nightly/book/nightly-rust.html)
+* Install Cap'n Proto. Follow the installation guide [here](https://capnproto.org/install.html)
+* Install [Rust](https://doc.rust-lang.org/nightly/book/nightly-rust.html)
 (the nighlty version)
 
 In order to build the application run the following command in your terminal:
@@ -48,7 +48,7 @@ Options:
 
 ## Submitting a bug
 
-If you encounter a bug, open an issue here and specify the
+If you encounter a bug, open an issue [here](https://github.com/GreenPix/sarosa/issues) and specify the
 output given by running:
 
     cargo run -- --version
