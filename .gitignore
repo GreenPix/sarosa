@@ -1,2 +1,3 @@
 /target
+/sarosa_engine/Cargo.lock
 log.toml
