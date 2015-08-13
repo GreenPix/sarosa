@@ -26,7 +26,7 @@ impl ServerEventReader  {
 
     pub fn consume_event(&mut self, server_event: Notification) -> Option<ServerEvent> {
         match server_event {
-            ThisIsYou(id) => {
+            ThisIsYou { entity: id } => {
                 if self.local_copy_player_id.is_none() {
                     debug!("ThisIsYou({}) received", id);
                     self.local_copy_player_id = Some(id);

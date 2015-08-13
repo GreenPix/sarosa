@@ -17,7 +17,7 @@ use events::{
     UserEventType
 };
 use models::settings;
-use sarosa_net::messages::TargettedOrder;
+use sarosa_net::messages::EntityOrder;
 use net::{
     RemoteServerHandle,
     ServerEvent
@@ -68,8 +68,8 @@ impl RemoteServer {
                             break 'run;
                         }
 
-                        let order = TargettedOrder {
-                            target: converter.player_id as u64,
+                        let order = EntityOrder {
+                            entity: converter.player_id as u64,
                             order: converter.consume_event(ue),
                         };
                         match writer.write(&order) {
