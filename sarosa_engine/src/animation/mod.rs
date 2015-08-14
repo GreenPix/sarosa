@@ -2,6 +2,8 @@
 
 pub struct AnimationController;
 
+mod old;
+
 impl AnimationController {
 
     pub fn new() -> AnimationController {

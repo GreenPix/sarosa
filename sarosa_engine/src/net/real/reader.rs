@@ -5,6 +5,7 @@ use num::traits::ToPrimitive;
 
 use cgmath::Vector2;
 use models::player::THIS_PLAYER;
+use sarosa_net::messages::Location as Loc;
 use sarosa_net::messages::Notification::*;
 use sarosa_net::messages::Notification;
 use net::ServerEvent;
@@ -34,7 +35,7 @@ impl ServerEventReader  {
                 }
                 None
             }
-            Location {x, y, entity} => {
+            Location { entity, location: Loc { x, y } } => {
                 let xf = x.to_f32().unwrap_or(0f32) / 1000f32;
                 let yf = y.to_f32().unwrap_or(0f32) / 1000f32;
                 if let &Some(me) = &self.local_copy_player_id {
