@@ -2,7 +2,7 @@
 
 pub struct AnimationController;
 
-mod old;
+mod frame;
 
 impl AnimationController {
 
