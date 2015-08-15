@@ -32,7 +32,6 @@ pub struct Server {
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum ServerError {
     Disconnected,
-    GameIsOver,
 }
 
 enum ServerEvent {

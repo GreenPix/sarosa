@@ -3,6 +3,7 @@ use std::slice::Iter;
 use cgmath::Vector2;
 
 use models::player::Player;
+use models::player::THIS_PLAYER;
 use models::player::PlayerId;
 use models::map::GameMap;
 use animation::AnimationManager;
@@ -77,6 +78,12 @@ impl GameData {
             },
             Vacant(_) => warn!("Received `update player` for unknown player id: {}", id),
         }
+    }
+
+    pub fn this_player(&self) -> Option<&Player> {
+        self.player_id_to_index.get(&THIS_PLAYER).map(|&index| {
+            unsafe { self.players.get_unchecked(index) }
+        })
     }
 
     pub fn players_len(&self) -> usize {

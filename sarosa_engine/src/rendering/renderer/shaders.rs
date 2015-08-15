@@ -8,12 +8,13 @@ implement_vertex!(Vertex, i_position, i_tex_id);
 
 pub const VERTEX_140: &'static str = r"
     #version 140
+    uniform mat4 mvp;
     in vec2 i_position;
     in uint i_tex_id;
     out vec2 v_tex_coords;
     flat out uint v_tex_id;
     void main() {
-        gl_Position = vec4(i_position, 0.0, 1.0);
+        gl_Position = mvp * vec4(i_position, 0.0, 1.0);
         uint sprite_x = i_tex_id % uint(9 * 4);
         uint sprite_y = sprite_x / uint(9);
         sprite_x = sprite_x % uint(9);

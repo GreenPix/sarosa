@@ -4,6 +4,7 @@ use num::traits::Zero;
 use events::{
     EventSystem,
     UserEventType,
+    UserEventState
 };
 use models::game::GameData;
 use models::player::{
@@ -68,7 +69,7 @@ impl GameInstance {
     pub fn new(window: &Window, _: Settings) -> GameInstance {
         GameInstance {
             renderer: GameRenderer::new(window),
-            world_scene: WorldScene::default(),
+            world_scene: WorldScene::new(),
             game_data: GameData::new(),
             anim_manager: AnimationManager::new(),
         }
@@ -85,15 +86,20 @@ impl GameInstance {
 
     fn event_update(&mut self, event_sys: &EventSystem) -> LoopState {
         for &e in event_sys.iter() {
-            match e.kind {
-                UserEventType::Quit => return LoopState::Break,
-                _ => (),
+            if e.state == UserEventState::Start {
+                match e.kind {
+                    UserEventType::Quit => return LoopState::Break,
+                    UserEventType::ZoomIn => self.world_scene.camera().zoom_in(),
+                    UserEventType::ZoomOut => self.world_scene.camera().zoom_out(),
+                    _ => (),
+                }
             }
         }
         LoopState::Continue
     }
 
     fn frame_update(&mut self, window: &mut Window) {
+        self.world_scene.update_world(&self.game_data);
         self.renderer.update_gpu_mem(&self.game_data);
         self.renderer.render(&self.world_scene, window);
     }

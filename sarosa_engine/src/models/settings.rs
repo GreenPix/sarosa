@@ -99,10 +99,20 @@ impl KeyboardSettings {
 
     pub fn new() -> KeyboardSettings {
         let mut hm = HashMap::new();
+
+        ///////////////////////////////////////////////////////////////
+        // Default bindings for Keyboards Events
+        //
+        // TODO(Nemikolh): Read that config from a settings file.
+        //
         hm.insert(VirtualKeyCode::Up, UserEventType::CmdUp);
         hm.insert(VirtualKeyCode::Down, UserEventType::CmdDown);
         hm.insert(VirtualKeyCode::Left, UserEventType::CmdLeft);
         hm.insert(VirtualKeyCode::Right, UserEventType::CmdRight);
+        hm.insert(VirtualKeyCode::I, UserEventType::ZoomIn);
+        hm.insert(VirtualKeyCode::O, UserEventType::ZoomOut);
+        //
+        ///////////////////////////////////////////////////////////////
         KeyboardSettings(hm)
     }
 

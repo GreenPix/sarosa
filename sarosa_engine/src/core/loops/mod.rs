@@ -33,7 +33,7 @@ impl GameLoop {
             // Lookup all events:
             window.poll_events(&mut event_sys);
 
-            // Push then to the server
+            // Push them to the server
             server.event_update(&event_sys);
 
             // Then the game instance

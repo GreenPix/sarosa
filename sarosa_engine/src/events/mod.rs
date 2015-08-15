@@ -29,6 +29,8 @@ pub enum UserEventType {
     CmdDown,
     CmdLeft,
     CmdRight,
+    ZoomIn,
+    ZoomOut,
 }
 
 

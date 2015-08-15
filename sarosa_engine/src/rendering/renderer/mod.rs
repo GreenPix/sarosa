@@ -120,14 +120,14 @@ impl GameRenderer {
             // let position: (f32, f32) = (rand::random(), rand::random());
             // let position: (f32, f32) = (position.0 * 2.0 - 1.0, position.1 * 2.0 - 1.0);
 
-            sprite[0].i_position[0] = x - 0.1;
-            sprite[0].i_position[1] = y + 0.1;
-            sprite[1].i_position[0] = x + 0.1;
-            sprite[1].i_position[1] = y + 0.1;
-            sprite[2].i_position[0] = x - 0.1;
-            sprite[2].i_position[1] = y - 0.1;
-            sprite[3].i_position[0] = x + 0.1;
-            sprite[3].i_position[1] = y - 0.1;
+            sprite[0].i_position[0] = x - 12.0;
+            sprite[0].i_position[1] = y + 16.0;
+            sprite[1].i_position[0] = x + 12.0;
+            sprite[1].i_position[1] = y + 16.0;
+            sprite[2].i_position[0] = x - 12.0;
+            sprite[2].i_position[1] = y - 16.0;
+            sprite[3].i_position[0] = x + 12.0;
+            sprite[3].i_position[1] = y - 16.0;
             sprite[0].i_tex_id = tex_id;
             sprite[1].i_tex_id = tex_id;
             sprite[2].i_tex_id = tex_id;
@@ -148,14 +148,14 @@ impl GameRenderer {
             let (x, y) = (player.position.x, player.position.y);
             let AbsoluteTextureId(tex_id) = player.animator.absolute_tex_id();
 
-            sprite[0].i_position[0] = x - 0.1;
-            sprite[0].i_position[1] = y + 0.1;
-            sprite[1].i_position[0] = x + 0.1;
-            sprite[1].i_position[1] = y + 0.1;
-            sprite[2].i_position[0] = x - 0.1;
-            sprite[2].i_position[1] = y - 0.1;
-            sprite[3].i_position[0] = x + 0.1;
-            sprite[3].i_position[1] = y - 0.1;
+            sprite[0].i_position[0] = x - 12.0;
+            sprite[0].i_position[1] = y + 16.0;
+            sprite[1].i_position[0] = x + 12.0;
+            sprite[1].i_position[1] = y + 16.0;
+            sprite[2].i_position[0] = x - 12.0;
+            sprite[2].i_position[1] = y - 16.0;
+            sprite[3].i_position[0] = x + 12.0;
+            sprite[3].i_position[1] = y - 16.0;
             sprite[0].i_tex_id = tex_id;
             sprite[1].i_tex_id = tex_id;
             sprite[2].i_tex_id = tex_id;
@@ -178,11 +178,15 @@ impl GameRenderer {
         let sprites = cmp::min(self.nb_sprites, MAX_SPRITES);
         let ib_slice = self.index_buffer.slice(0 .. sprites * 6).unwrap();
 
+        // Compute the projection matrix:
+        let transform = (*window.projection()) * (*world_scene.transform());
+
         // drawing a frame
         let mut target = window.display.draw();
         target.clear_color(0.11, 0.31, 0.11, 1.0);
         target.draw(&self.vertex_buffer, &ib_slice, &self.program,
                     &uniform! {
+                        mvp: transform,
                         tex: self.texture.sampled()
                             .minify_filter(NearestMipmapNearest)
                             .magnify_filter(Nearest)
@@ -193,9 +197,6 @@ impl GameRenderer {
                         ),
                         .. Default::default()
                     }).unwrap();
-
-        // Render scene:
-        world_scene.render(&target);
         target.finish().unwrap();
     }
 
