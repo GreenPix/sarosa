@@ -166,6 +166,9 @@ impl GameRenderer {
 
     pub fn render(&self, world_scene: &WorldScene, window: &mut Window) {
 
+        use glium::uniforms::MagnifySamplerFilter::Nearest;
+        use glium::uniforms::MinifySamplerFilter::NearestMipmapNearest;
+
         if self.nb_sprites == 0 {
             return;
         }
@@ -178,8 +181,13 @@ impl GameRenderer {
         // drawing a frame
         let mut target = window.display.draw();
         target.clear_color(0.11, 0.31, 0.11, 1.0);
-        target.draw(&self.vertex_buffer, &ib_slice,
-                    &self.program, &uniform! { tex: &self.texture }, &DrawParameters {
+        target.draw(&self.vertex_buffer, &ib_slice, &self.program,
+                    &uniform! {
+                        tex: self.texture.sampled()
+                            .minify_filter(NearestMipmapNearest)
+                            .magnify_filter(Nearest)
+                    },
+                    &DrawParameters {
                         blending_function: Some(
                             Addition { source: SourceAlpha, destination: OneMinusSourceAlpha }
                         ),
