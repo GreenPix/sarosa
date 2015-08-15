@@ -19,7 +19,7 @@ use glium::{
     VertexBuffer
 };
 use Window;
-use animation::AnimationController;
+// use animation::AnimationController;
 use models::game::GameData;
 use rendering::scene::WorldScene;
 
@@ -31,7 +31,7 @@ pub struct GameRenderer {
     index_buffer: IndexBuffer<u16>,
     texture: Texture2dArray,
     nb_sprites: usize,
-    animator: AnimationController,
+    // animator: AnimationController,
 }
 
 const MAX_SPRITES: usize = 1024;
@@ -105,7 +105,7 @@ impl GameRenderer {
             index_buffer: index_buffer,
             texture: texture,
             nb_sprites: 0,
-            animator: AnimationController::new(),
+            // animator: AnimationController::new(),
         }
     }
 
@@ -189,7 +189,7 @@ impl GameRenderer {
     }
 
     pub fn fixed_update(&mut self, fixed_timestamp: u64) {
-        self.animator.update(fixed_timestamp);
+        // self.animator.update(fixed_timestamp);
     }
 
 }

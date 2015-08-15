@@ -1,19 +1,19 @@
+use animation::NB_FRAMES;
 
 pub type FrameId = u8;
-
-pub const NB_FRAMES: FrameId = 3;
 
 const BACKWARD_DIR: FrameId = 0b1000_0000;
 const FLAG_ITER_DONE: FrameId = 0b1100_0000;
 
-pub struct FrameAnimator<F> {
+#[derive(Clone)]
+pub struct FrameAnimator<F: Copy> {
     frames: [F; NB_FRAMES as usize],
     last_frame: FrameId,
     init_frame: FrameId,
     end_frame: FrameId,
 }
 
-impl<F: Copy> FrameAnimator<F> {
+impl<F: Copy + Eq> FrameAnimator<F> {
 
     #[inline]
     pub fn new(frames: &[F; NB_FRAMES as usize], init_frame: FrameId) -> FrameAnimator<F> {
@@ -24,6 +24,11 @@ impl<F: Copy> FrameAnimator<F> {
             init_frame: init_frame,
             end_frame: init_frame,
         }
+    }
+
+    #[inline]
+    pub fn use_same_frames_as(&self, other: &FrameAnimator<F>) -> bool {
+        self.frames == other.frames
     }
 
     #[inline]
