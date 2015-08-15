@@ -1,5 +1,3 @@
-extern crate rand;
-
 use std::cmp;
 use image;
 use glium::Surface;
@@ -18,9 +16,11 @@ use glium::program::Program;
 use glium::{
     VertexBuffer
 };
+
+
 use Window;
-// use animation::AnimationController;
 use models::game::GameData;
+use animation::AbsoluteTextureId;
 use rendering::scene::WorldScene;
 
 mod shaders;
@@ -31,7 +31,6 @@ pub struct GameRenderer {
     index_buffer: IndexBuffer<u16>,
     texture: Texture2dArray,
     nb_sprites: usize,
-    // animator: AnimationController,
 }
 
 const MAX_SPRITES: usize = 1024;
@@ -105,7 +104,6 @@ impl GameRenderer {
             index_buffer: index_buffer,
             texture: texture,
             nb_sprites: 0,
-            // animator: AnimationController::new(),
         }
     }
 
@@ -115,9 +113,9 @@ impl GameRenderer {
 
         // initializing with random data
         for (sprite, player) in self.vertex_buffer.map().chunks_mut(4).zip(game_data.iter_players()) {
-            let tex_id: u32 = rand::random();
-            let tex_id = tex_id % self.texture.get_array_size().unwrap();
-            let tex_id = tex_id * 9 * 4 + 19;
+            // let tex_id = tex_id % self.texture.get_array_size().unwrap();
+            // let tex_id = tex_id * 9 * 4 + 19;
+            let AbsoluteTextureId(tex_id) = player.animator.absolute_tex_id();
             let (x, y) = (player.position.x, player.position.y);
             // let position: (f32, f32) = (rand::random(), rand::random());
             // let position: (f32, f32) = (position.0 * 2.0 - 1.0, position.1 * 2.0 - 1.0);
@@ -148,6 +146,7 @@ impl GameRenderer {
             // let mv: (f32, f32) = (rand::random(), rand::random());
             // let mv = (mv.0 * 0.01 - 0.005, mv.1 * 0.01 - 0.005);
             let (x, y) = (player.position.x, player.position.y);
+            let AbsoluteTextureId(tex_id) = player.animator.absolute_tex_id();
 
             sprite[0].i_position[0] = x - 0.1;
             sprite[0].i_position[1] = y + 0.1;
@@ -157,6 +156,10 @@ impl GameRenderer {
             sprite[2].i_position[1] = y - 0.1;
             sprite[3].i_position[0] = x + 0.1;
             sprite[3].i_position[1] = y - 0.1;
+            sprite[0].i_tex_id = tex_id;
+            sprite[1].i_tex_id = tex_id;
+            sprite[2].i_tex_id = tex_id;
+            sprite[3].i_tex_id = tex_id;
             // sprite[...].i_tex_id = ...;  // if you want to set the texture
         }
     }
@@ -188,8 +191,9 @@ impl GameRenderer {
         target.finish().unwrap();
     }
 
-    pub fn fixed_update(&mut self, fixed_timestamp: u64) {
-        // self.animator.update(fixed_timestamp);
-    }
+    // pub fn fixed_update(&mut self, fixed_timestamp: u64) {
+    //
+    //     self.animator.update(fixed_timestamp);
+    // }
 
 }

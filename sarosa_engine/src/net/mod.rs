@@ -8,7 +8,7 @@ use cgmath::Vector2;
 use events::EventSystem;
 use core::GameInstance;
 use models::player::PlayerId;
-use models::player::Player;
+use animation::TextureId;
 use events::UserEvent;
 use Settings;
 
@@ -37,9 +37,17 @@ pub enum ServerError {
 
 enum ServerEvent {
     DisconnectedFromServer,
-    NewPlayer(Vector2<f32>, PlayerId),
+    NewPlayer {
+        initial_pos: Vector2<f32>,
+        id: PlayerId,
+        tex_id: TextureId,
+    },
+    Position {
+        pos: Vector2<f32>,
+        speed: Vector2<f32>,
+        id: PlayerId
+    },
     PlayerHasQuit(PlayerId),
-    Position(Vector2<f32>, PlayerId),
 }
 
 impl Server {
@@ -131,9 +139,10 @@ impl Server {
     pub fn remote_update(&mut self, game_instance: &mut GameInstance) -> Result<(), ServerError> {
         use self::ServerEvent::NewPlayer;
         use self::ServerEvent::Position;
+        use self::ServerEvent::PlayerHasQuit;
         use self::ServerEvent::DisconnectedFromServer;
 
-        let mut game_data = game_instance.game_data();
+        let mut game_data = game_instance.proxy_add();
 
         if let Ok(_) = self.rx_error.try_recv() {
             return Err(ServerError::Disconnected);
@@ -141,10 +150,10 @@ impl Server {
 
         while let Ok(server_event) = self.rx.try_recv() {
             match server_event {
-                NewPlayer(pos, id) => game_data.add_player(Player { position: pos }, id),
-                Position(pos, id)  => game_data.add_player(Player { position: pos }, id),
-                DisconnectedFromServer => return Err(ServerError::Disconnected),
-                _ => (),
+                NewPlayer { initial_pos, tex_id, id }   => game_data.add_player(id, initial_pos, tex_id),
+                Position { pos, speed, id }             => game_data.update_player(id, pos, speed),
+                PlayerHasQuit(id)                       => game_data.remove_player(id),
+                DisconnectedFromServer                  => return Err(ServerError::Disconnected),
             }
         }
 

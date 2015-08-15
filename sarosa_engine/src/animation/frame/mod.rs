@@ -1,5 +1,4 @@
 
-
 use self::old::FrameAnimator;
 use animation::NB_FRAMES;
 
@@ -47,7 +46,7 @@ impl<F: Copy + Eq> TimeBasedAnimator<F> {
     }
 
     #[inline]
-    pub fn next_frame(&mut self, time_elapsed: u64) -> F {
+    pub fn next_frame(&mut self, time_elapsed: u64, instant_speed: f32) -> F {
         if self.frame_animator.is_finished() {
             self.frame_animator.reset();
         }

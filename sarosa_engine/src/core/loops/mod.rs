@@ -25,7 +25,7 @@ impl GameLoop {
     {
         debug!("Game has started");
 
-        let mut accumulator = 0;
+        let mut lag = 0;
         let mut previous_clock = clock_ticks::precise_time_ns();
         let mut event_sys = EventSystem::default();
 
@@ -56,17 +56,18 @@ impl GameLoop {
 
             // Fixed update
             let now = clock_ticks::precise_time_ns();
-            accumulator += now - previous_clock;
+            lag += now - previous_clock;
             previous_clock = now;
 
             const FIXED_TIME_STAMP: u64 = 16666667;
-            while accumulator >= FIXED_TIME_STAMP {
-                accumulator -= FIXED_TIME_STAMP;
+            // while lag >= FIXED_TIME_STAMP {
+            //    lag -= FIXED_TIME_STAMP;
+            // }
+            let fixed_update = (lag / FIXED_TIME_STAMP) * FIXED_TIME_STAMP;
+            instance.fixed_update(lag);
+            lag -= fixed_update;
 
-                instance.fixed_update(FIXED_TIME_STAMP);
-            }
-
-            thread::sleep_ms(((FIXED_TIME_STAMP - accumulator) / 1000000) as u32);
+            thread::sleep_ms(((FIXED_TIME_STAMP - lag) / 1000000) as u32);
         }
 
         debug!("Game has finished");

@@ -1,3 +1,6 @@
+use cgmath::Vector2;
+use num::traits::Zero;
+
 use events::{
     EventSystem,
     UserEventType,
@@ -7,6 +10,8 @@ use models::player::{
     Player,
     PlayerId
 };
+use animation::TextureId;
+use animation::AnimationManager;
 use rendering::GameRenderer;
 use rendering::scene::WorldScene;
 use Window;
@@ -20,6 +25,7 @@ pub struct GameInstance {
     renderer: GameRenderer,
     world_scene: WorldScene,
     game_data: GameData,
+    anim_manager: AnimationManager,
     // ui_router: oil::Router,
 }
 
@@ -27,13 +33,25 @@ pub struct GameDataRefMut<'a> {
     should_require_gpu_init: bool,
     game_data: &'a mut GameData,
     renderer: &'a mut GameRenderer,
+    anim_manager: &'a AnimationManager,
 }
 
 impl<'a> GameDataRefMut<'a> {
 
-    pub fn add_player(&mut self, player: Player, id: PlayerId) {
-        let is_new = self.game_data.add_player(player, id);
+    pub fn add_player(&mut self, id: PlayerId, initial_pos: Vector2<f32>, tex_id: TextureId) {
+        let player = Player::new(initial_pos, Vector2::zero(), tex_id, self.anim_manager);
+        let is_new = self.game_data.add_player(id, player);
         self.should_require_gpu_init |= is_new;
+    }
+
+    pub fn update_player(&mut self, id: PlayerId, pos: Vector2<f32>, speed: Vector2<f32>) {
+        self.game_data.update_player(id, pos, speed);
+        self.should_require_gpu_init = true;
+    }
+
+    pub fn remove_player(&mut self, id: PlayerId) {
+        self.game_data.remove_player(id);
+        self.should_require_gpu_init = true;
     }
 }
 
@@ -52,14 +70,16 @@ impl GameInstance {
             renderer: GameRenderer::new(window),
             world_scene: WorldScene::default(),
             game_data: GameData::new(),
+            anim_manager: AnimationManager::new(),
         }
     }
 
-    pub fn game_data<'a>(&'a mut self) -> GameDataRefMut<'a> {
+    pub fn proxy_add<'a>(&'a mut self) -> GameDataRefMut<'a> {
         GameDataRefMut {
             should_require_gpu_init: false,
             game_data: &mut self.game_data,
             renderer: &mut self.renderer,
+            anim_manager: &self.anim_manager,
         }
     }
 
@@ -79,7 +99,7 @@ impl GameInstance {
     }
 
     fn fixed_update(&mut self, fixed_timestamp: u64) {
-        self.renderer.fixed_update(fixed_timestamp);
+        self.game_data.fixed_update(&self.anim_manager, fixed_timestamp);
     }
 
 }
