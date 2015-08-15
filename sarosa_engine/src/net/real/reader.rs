@@ -38,7 +38,7 @@ impl ServerEventReader  {
             Location { entity, location: Loc { x, y } } => {
                 let xf = x.to_f32().unwrap_or(0f32) / 1000f32;
                 let yf = y.to_f32().unwrap_or(0f32) / 1000f32;
-                let speed = Vector2::new(0f32, 1f32);
+                let speed = Vector2::new(0f32, 0.001f32);
 
                 if let &Some(me) = &self.local_copy_player_id {
                     if me == entity {

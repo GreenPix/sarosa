@@ -39,12 +39,13 @@ impl FakeServerForReal {
             UserEvent { state: Start, kind: CmdRight }  => Vector2::new( 1f32, 0f32),
             _ => Vector2::zero(),
         };
-        self.speed = self.speed + speed;
+        let factor = Vector2::new(0.05f32, 0.05f32);
+        self.speed = self.speed + factor * speed;
     }
 
     fn event_iter(&mut self) -> Once<ServerEvent> {
-        let factor = Vector2::new(0.005f32, 0.005f32);
-        self.current_player_pos = self.current_player_pos + factor * self.speed;
+        let approx_dt = Vector2::new(0.02, 0.02);
+        self.current_player_pos = self.current_player_pos + approx_dt * self.speed;
 
         if self.first_event {
             self.first_event = false;
