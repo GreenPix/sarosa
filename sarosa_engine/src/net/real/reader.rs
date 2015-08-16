@@ -36,7 +36,7 @@ impl ServerEventReader  {
                 None
             }
             NewEntity { entity, position: Vec2d { x, y }, skin } => {
-
+                debug!("New  player: {}", entity);
                 if let &Some(me) = &self.local_copy_player_id {
                     if me == entity {
                         Some(ServerEvent::NewPlayer {
@@ -56,6 +56,7 @@ impl ServerEventReader  {
                 }
             }
             EntityHasQuit { entity } => {
+                debug!("Player has quit: {}", entity);
                 Some(ServerEvent::PlayerHasQuit(entity))
             }
             Position { entity, position, speed } => {
