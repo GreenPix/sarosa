@@ -20,4 +20,4 @@ features = ["glutin", "image", "cgmath"]
 default-features = false
 
 [dependencies.sarosa-net]
-git = "ssh://git@gitlab.com:22/slayers-online/sarosa-net.git"
+git = "https://github.com/GreenPix/sarosa-net.git"

@@ -342,7 +342,7 @@ dependencies = [
 [[package]]
 name = "lycan-serialize"
 version = "0.1.0"
-source = "git+ssh://git@gitlab.com/slayers-online/lycan-serialize.git#0868bddc87d5f9be4d0607c7b6fbe7d34b0cb3ba"
+source = "git+https://github.com/GreenPix/lycan-serialize.git#5d779728d1424e98ca136f4be2e50762ef21683b"
 dependencies = [
  "byteorder 0.3.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "capnp 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -441,11 +441,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "sarosa-net"
 version = "0.1.0"
-source = "git+ssh://git@gitlab.com/slayers-online/sarosa-net.git#d867b3e4124a6c0b571de8ba24c115bfc06df4db"
+source = "git+https://github.com/GreenPix/sarosa-net.git#74767c11b046c5d134ecb1c771c30ffbe1e9d874"
 dependencies = [
  "byteorder 0.3.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "lycan-serialize 0.1.0 (git+ssh://git@gitlab.com/slayers-online/lycan-serialize.git)",
+ "lycan-serialize 0.1.0 (git+https://github.com/GreenPix/lycan-serialize.git)",
 ]
 
 [[package]]
@@ -460,7 +460,7 @@ dependencies = [
  "log 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "num 0.1.26 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
- "sarosa-net 0.1.0 (git+ssh://git@gitlab.com/slayers-online/sarosa-net.git)",
+ "sarosa-net 0.1.0 (git+https://github.com/GreenPix/sarosa-net.git)",
 ]
 
 [[package]]
