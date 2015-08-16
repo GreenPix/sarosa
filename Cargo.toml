@@ -2,7 +2,10 @@
 
 name = "sarosa"
 version = "0.0.1"
-authors = ["The GreenPix developers"]
+authors = [
+        "Nemikolh",
+        "Vaelden <maugan.villatel@gmail.com>",
+]
 build = "build.rs"
 
 [dependencies]
