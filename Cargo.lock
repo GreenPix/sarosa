@@ -342,7 +342,7 @@ dependencies = [
 [[package]]
 name = "lycan-serialize"
 version = "0.1.0"
-source = "git+ssh://git@gitlab.com/slayers-online/lycan-serialize.git#cc1e288247061308d5d3f687b44395011d1e36fa"
+source = "git+ssh://git@gitlab.com/slayers-online/lycan-serialize.git#0868bddc87d5f9be4d0607c7b6fbe7d34b0cb3ba"
 dependencies = [
  "byteorder 0.3.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "capnp 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",

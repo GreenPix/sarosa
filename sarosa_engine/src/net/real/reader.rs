@@ -55,6 +55,9 @@ impl ServerEventReader  {
                     None
                 }
             }
+            EntityHasQuit { entity } => {
+                Some(ServerEvent::PlayerHasQuit(entity))
+            }
             Position { entity, position, speed } => {
                 let xf = position.x;
                 let yf = position.y;
