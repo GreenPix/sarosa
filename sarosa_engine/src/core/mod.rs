@@ -59,7 +59,7 @@ impl<'a> GameDataRefMut<'a> {
 impl<'a> Drop for GameDataRefMut<'a> {
     fn drop(&mut self) {
         if self.should_require_gpu_init {
-            self.renderer.initialize_gpu_mem(self.game_data);
+            self.renderer.update_gpu_mem(self.game_data);
         }
     }
 }
@@ -67,10 +67,15 @@ impl<'a> Drop for GameDataRefMut<'a> {
 impl GameInstance {
 
     pub fn new(window: &Window, _: Settings) -> GameInstance {
+
+        let game_data = GameData::new();
+        let mut renderer = GameRenderer::new(window);
+        renderer.initialize_gpu_mem(&game_data, window);
+
         GameInstance {
-            renderer: GameRenderer::new(window),
+            renderer: renderer,
             world_scene: WorldScene::new(),
-            game_data: GameData::new(),
+            game_data: game_data,
             anim_manager: AnimationManager::new(),
         }
     }
@@ -100,7 +105,7 @@ impl GameInstance {
 
     fn frame_update(&mut self, window: &mut Window) {
         self.world_scene.update_world(&self.game_data);
-        self.renderer.update_gpu_mem(&self.game_data);
+        //self.renderer.update_gpu_mem(&self.game_data);
         self.renderer.render(&self.world_scene, window);
     }
 
