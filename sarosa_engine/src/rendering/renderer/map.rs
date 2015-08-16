@@ -91,7 +91,7 @@ impl MapRenderer {
                 };
 
                 let num = num as u32;
-                let half_tile = GAME_UNIT_TO_PX * 2.0;
+                let half_tile = GAME_UNIT_TO_PX;
                 let x = (num % width) as i64 - (width / 2) as i64;
                 let y = (num / width) as i64 - (height / 2) as i64;
                 let position: (f32, f32) = (x as f32 * 16., y as f32 * 16.);
