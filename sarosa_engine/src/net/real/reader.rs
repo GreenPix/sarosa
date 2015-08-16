@@ -1,7 +1,6 @@
 use std::sync::Arc;
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering;
-use num::traits::ToPrimitive;
 
 use cgmath::Vector2;
 use animation::TextureId;
@@ -38,11 +37,23 @@ impl ServerEventReader  {
             }
             NewEntity { entity, position: Vec2d { x, y }, skin } => {
 
-                Some(ServerEvent::NewPlayer {
-                    initial_pos: Vector2::new(x, y),
-                    id: entity,
-                    tex_id: TextureId((skin % 2) as u32),
-                })
+                if let &Some(me) = &self.local_copy_player_id {
+                    if me == entity {
+                        Some(ServerEvent::NewPlayer {
+                            initial_pos: Vector2::new(x, y),
+                            id: THIS_PLAYER,
+                            tex_id: TextureId((skin % 2) as u32),
+                        })
+                    } else {
+                        Some(ServerEvent::NewPlayer {
+                            initial_pos: Vector2::new(x, y),
+                            id: entity,
+                            tex_id: TextureId((skin % 2) as u32),
+                        })
+                    }
+                } else {
+                    None
+                }
             }
             Position { entity, position, speed } => {
                 let xf = position.x;

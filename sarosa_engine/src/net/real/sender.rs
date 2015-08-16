@@ -51,7 +51,7 @@ impl CommandStates {
                     self.right = 0;
                     old_value
                 }
-                _ => unreachable!(),
+                _ => return,
             };
 
             if self.up    > old_value { self.up    = self.up    - 1 }
@@ -64,7 +64,7 @@ impl CommandStates {
                 UserEventType::CmdDown => self.down = max_value + 1,
                 UserEventType::CmdLeft => self.left = max_value + 1,
                 UserEventType::CmdRight => self.right = max_value + 1,
-                _ => unreachable!(),
+                _ => return,
             }
         }
     }
