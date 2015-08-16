@@ -39,7 +39,7 @@ impl FakeServerForReal {
             UserEvent { state: Start, kind: CmdRight }  => Vector2::new( 1f32, 0f32),
             _ => Vector2::zero(),
         };
-        let factor = Vector2::new(0.05f32, 0.05f32);
+        let factor = Vector2::new(0.5f32, 0.5f32);
         self.speed = self.speed + factor * speed;
     }
 
