@@ -6,7 +6,6 @@ authors = ["The GreenPix developers"]
 build = "build.rs"
 
 [dependencies]
-# oil = "*"
 log4rs = "*"
 docopt = "0.6.*"
 rustc-serialize = "0.3"

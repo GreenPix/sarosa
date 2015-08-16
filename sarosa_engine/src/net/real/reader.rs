@@ -4,8 +4,9 @@ use std::sync::atomic::Ordering;
 use num::traits::ToPrimitive;
 
 use cgmath::Vector2;
+use animation::TextureId;
 use models::player::THIS_PLAYER;
-use sarosa_net::messages::Location as Loc;
+use sarosa_net::messages::Vec2d;
 use sarosa_net::messages::Notification::*;
 use sarosa_net::messages::Notification;
 use net::ServerEvent;
@@ -35,10 +36,19 @@ impl ServerEventReader  {
                 }
                 None
             }
-            Location { entity, location: Loc { x, y } } => {
-                let xf = x.to_f32().unwrap_or(0f32) / 1000f32;
-                let yf = y.to_f32().unwrap_or(0f32) / 1000f32;
-                let speed = Vector2::new(0f32, 0.001f32);
+            NewEntity { entity, position: Vec2d { x, y }, skin } => {
+
+                Some(ServerEvent::NewPlayer {
+                    initial_pos: Vector2::new(x, y),
+                    id: entity,
+                    tex_id: TextureId((skin % 2) as u32),
+                })
+            }
+            Position { entity, position, speed } => {
+                let xf = position.x;
+                let yf = position.y;
+                //Vector2::new(0f32, 0.001f32);
+                let speed = Vector2::new(speed.x, speed.y);
 
                 if let &Some(me) = &self.local_copy_player_id {
                     if me == entity {
