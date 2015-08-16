@@ -1,5 +1,6 @@
 // Dependencies
 use cgmath::Vector2;
+use unit::GAME_UNIT_TO_PX;
 use self::frame::TimeBasedAnimator;
 use self::frame::FrameId;
 
@@ -51,10 +52,10 @@ impl AnimationManager {
     pub fn new() -> AnimationManager {
         // anim_total_time = (0.33 * 0.2 / 0.3225) * 10e9 ns
         // 2046511628
-        let up    = anim_dir!([ 0,  1,  2], 1, 0.25 * 8.0);
-        let right = anim_dir!([ 9, 10, 11], 1, 0.33 * 8.0);
-        let down  = anim_dir!([18, 19, 20], 1, 0.25 * 8.0);
-        let left  = anim_dir!([27, 28, 29], 1, 0.33 * 8.0);
+        let up    = anim_dir!([ 0,  1,  2], 1, 0.25 * GAME_UNIT_TO_PX);
+        let right = anim_dir!([ 9, 10, 11], 1, 0.33 * GAME_UNIT_TO_PX);
+        let down  = anim_dir!([18, 19, 20], 1, 0.25 * GAME_UNIT_TO_PX);
+        let left  = anim_dir!([27, 28, 29], 1, 0.33 * GAME_UNIT_TO_PX);
         AnimationManager {
             up_animator: up,
             down_animator: down,

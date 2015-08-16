@@ -16,6 +16,7 @@ use models::game::GameData;
 use animation::AbsoluteTextureId;
 use rendering::renderer::shaders;
 use Window;
+use unit::GAME_UNIT_TO_PX;
 
 pub struct PlayersRenderer {
     program: Program,
@@ -99,14 +100,14 @@ impl PlayersRenderer {
             let AbsoluteTextureId(tex_id) = player.animator.absolute_tex_id();
             let (x, y) = (player.position.x, player.position.y);
 
-            sprite[0].i_position[0] = x * 8.0 - 12.0;
-            sprite[0].i_position[1] = y * 8.0 + 16.0;
-            sprite[1].i_position[0] = x * 8.0 + 12.0;
-            sprite[1].i_position[1] = y * 8.0 + 16.0;
-            sprite[2].i_position[0] = x * 8.0 - 12.0;
-            sprite[2].i_position[1] = y * 8.0 - 16.0;
-            sprite[3].i_position[0] = x * 8.0 + 12.0;
-            sprite[3].i_position[1] = y * 8.0 - 16.0;
+            sprite[0].i_position[0] = x * GAME_UNIT_TO_PX - 12.0;
+            sprite[0].i_position[1] = y * GAME_UNIT_TO_PX + 16.0;
+            sprite[1].i_position[0] = x * GAME_UNIT_TO_PX + 12.0;
+            sprite[1].i_position[1] = y * GAME_UNIT_TO_PX + 16.0;
+            sprite[2].i_position[0] = x * GAME_UNIT_TO_PX - 12.0;
+            sprite[2].i_position[1] = y * GAME_UNIT_TO_PX - 16.0;
+            sprite[3].i_position[0] = x * GAME_UNIT_TO_PX + 12.0;
+            sprite[3].i_position[1] = y * GAME_UNIT_TO_PX - 16.0;
             sprite[0].i_tex_id = tex_id;
             sprite[1].i_tex_id = tex_id;
             sprite[2].i_tex_id = tex_id;

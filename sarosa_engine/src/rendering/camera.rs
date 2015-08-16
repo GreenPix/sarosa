@@ -1,6 +1,7 @@
 use cgmath::Vector2;
 use cgmath::Matrix4;
 use cgmath::Matrix;
+use unit::GAME_UNIT_TO_PX;
 
 pub struct Camera {
     transform: Matrix4<f32>,
@@ -31,8 +32,8 @@ impl Camera {
     pub fn track(&mut self, position: &Vector2<f32>) {
         let s = self.scale;
         self.transform = Matrix4::new(
-              s, 0.0, 0.0, - s * position.x * 8.0,
-            0.0,   s, 0.0, - s * position.y * 8.0,
+              s, 0.0, 0.0, - s * position.x * GAME_UNIT_TO_PX,
+            0.0,   s, 0.0, - s * position.y * GAME_UNIT_TO_PX,
             0.0, 0.0,   s, 0.0,
             0.0, 0.0, 0.0, 1.0
         ).transpose();

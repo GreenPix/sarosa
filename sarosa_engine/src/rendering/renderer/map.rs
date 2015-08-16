@@ -18,6 +18,7 @@ use models::game::GameData;
 use animation::TextureId;
 use rendering::renderer::shaders;
 use Window;
+use unit::GAME_UNIT_TO_PX;
 
 pub struct MapRenderer {
     program: Program,
@@ -90,21 +91,22 @@ impl MapRenderer {
                 };
 
                 let num = num as u32;
+                let half_tile = GAME_UNIT_TO_PX * 2.0;
                 let x = (num % width) as i64 - (width / 2) as i64;
                 let y = (num / width) as i64 - (height / 2) as i64;
                 let position: (f32, f32) = (x as f32 * 16., y as f32 * 16.);
 
-                sprite[0].i_position[0] = position.0 - 8.0;
-                sprite[0].i_position[1] = position.1 + 8.0;
+                sprite[0].i_position[0] = position.0 - half_tile;
+                sprite[0].i_position[1] = position.1 + half_tile;
                 sprite[0].i_tex_id = absolute_tex_id;
-                sprite[1].i_position[0] = position.0 + 8.0;
-                sprite[1].i_position[1] = position.1 + 8.0;
+                sprite[1].i_position[0] = position.0 + half_tile;
+                sprite[1].i_position[1] = position.1 + half_tile;
                 sprite[1].i_tex_id = absolute_tex_id;
-                sprite[2].i_position[0] = position.0 - 8.0;
-                sprite[2].i_position[1] = position.1 - 8.0;
+                sprite[2].i_position[0] = position.0 - half_tile;
+                sprite[2].i_position[1] = position.1 - half_tile;
                 sprite[2].i_tex_id = absolute_tex_id;
-                sprite[3].i_position[0] = position.0 + 8.0;
-                sprite[3].i_position[1] = position.1 - 8.0;
+                sprite[3].i_position[0] = position.0 + half_tile;
+                sprite[3].i_position[1] = position.1 - half_tile;
                 sprite[3].i_tex_id = absolute_tex_id;
 
                 ib_data.push(num * 4);
