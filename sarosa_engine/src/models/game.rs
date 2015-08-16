@@ -51,18 +51,25 @@ impl GameData {
         use std::collections::hash_map::Entry::*;
 
         // Swap last player in list to the player removed.
-        let last_el_place = self.players.len().saturating_sub(1) as u64;
-        match self.player_id_to_index.entry(id) {
+        let old_place = self.players.len().saturating_sub(1);
+        let new_place = match self.player_id_to_index.entry(id) {
             Occupied(e) => {
-                self.players.swap_remove(*(e.get()));
+                let new_place = *(e.get());
+                self.players.swap_remove(new_place);
+                e.remove();
+                new_place
             }
             Vacant(_) => {
                 warn!("Received `delete player` for unknown player id: {}", id);
                 return;
             }
+        };
+
+        for (_, val) in self.player_id_to_index.iter_mut() {
+            if *val == old_place {
+                *val = new_place;
+            }
         }
-        // Remove the last element, which must be here
-        self.player_id_to_index.remove(&last_el_place);
     }
 
     pub fn update_player(&mut self, id: PlayerId, pos: Vector2<f32>, speed: Vector2<f32>) {
