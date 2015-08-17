@@ -68,7 +68,21 @@ impl GameInstance {
 
     pub fn new(window: &Window, _: Settings) -> GameInstance {
 
-        let game_data = GameData::new();
+        let anim_manager = AnimationManager::new();
+        // TODO(Nemikolh):
+        //
+        //  There's a lot going on here behind the scene.
+        //  Basically the GameData is going to load the data
+        //  for THIS_PLAYER but it assumes that we have loaded
+        //  within the GameRenderer the skin of the player
+        //  at the texture id 0.
+        //
+        //  Probably in a near feature all those details will
+        //  be given by a ResourceManager which in turns will
+        //  use a local cache or something to know what is the
+        //  correct skin id.
+        //
+        let game_data = GameData::new(TextureId(0), &anim_manager);
         let mut renderer = GameRenderer::new(window);
         renderer.initialize_gpu_mem(&game_data, window);
 
@@ -76,7 +90,7 @@ impl GameInstance {
             renderer: renderer,
             world_scene: WorldScene::new(),
             game_data: game_data,
-            anim_manager: AnimationManager::new(),
+            anim_manager: anim_manager,
         }
     }
 
