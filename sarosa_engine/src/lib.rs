@@ -1,4 +1,6 @@
 #![feature(result_expect)]
+#![feature(iter_arith)]
+
 
 #[macro_use] extern crate log;
 #[macro_use] extern crate glium;
@@ -23,3 +25,4 @@ mod events;
 mod rendering;
 mod animation;
 mod unit;
+mod profiler;
