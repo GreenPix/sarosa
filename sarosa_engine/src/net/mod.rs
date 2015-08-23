@@ -9,7 +9,7 @@ use events::EventSystem;
 use core::GameInstance;
 use models::player::PlayerId;
 use animation::TextureId;
-use events::UserEvent;
+use events::CommandEvent;
 use Settings;
 
 mod real;
@@ -21,7 +21,7 @@ struct NullServerHandle;
 impl RemoteServerHandle for NullServerHandle {}
 
 pub struct Server {
-    tx: Sender<UserEvent>,
+    tx: Sender<CommandEvent>,
     rx: Receiver<ServerEvent>,
     tx_error: Sender<()>,
     rx_error: Receiver<()>,
@@ -90,7 +90,7 @@ impl Server {
         let mut remote_server = fake::RemoteServer::new();
 
         // Main channels for communication
-        let (tx_user, rx_user): (Sender<UserEvent>, Receiver<UserEvent>) = channel();
+        let (tx_user, rx_user): (Sender<CommandEvent>, Receiver<CommandEvent>) = channel();
         let (tx_serv, rx_serv): (Sender<ServerEvent>, Receiver<ServerEvent>) = channel();
 
         // Channels for errors
@@ -112,7 +112,7 @@ impl Server {
         let mut remote_server = real::RemoteServer::new(self.settings.network().deref());
 
         // Main channels for communication
-        let (tx_user, rx_user): (Sender<UserEvent>, Receiver<UserEvent>) = channel();
+        let (tx_user, rx_user): (Sender<CommandEvent>, Receiver<CommandEvent>) = channel();
         let (tx_serv, rx_serv): (Sender<ServerEvent>, Receiver<ServerEvent>) = channel();
 
         // Channels for errors

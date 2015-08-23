@@ -1,4 +1,11 @@
 
+use cgmath::Vector2;
+use std::rc::Rc;
+
+use rendering::scene::TileUnit;
+use rendering::scene::GameUnit;
+
+
 // Re-export for doc.
 pub use core::loops::deferred::DeferredLoader;
 
@@ -29,4 +36,29 @@ pub trait Loader: Send {
     /// be doing long operation like reading a file,
     /// and so on.
     fn load_resources(&mut self) -> Self::Resources;
+}
+
+/// This is the closest representation of an Object
+/// as intended originally in the design.
+/// After converting an `ObjectTree` to an `Object`,
+/// we should generate:
+///     - A texture array containing the different frame of the object
+///     - A vertex buffer containing 4 vertices
+///     - A set of position for each of the instance of `ObjectTree`
+///       that share the same `ObjectNode`.
+///
+/// Notes:
+///
+///  * `self.data.position` should always be (0, 0)
+pub struct ObjectTree {
+    data: Rc<ObjectNode>,
+    obj_pos: Vector2<GameUnit>,
+}
+
+pub struct ObjectNode {
+    width: TileUnit,
+    height: TileUnit,
+    position: Vector2<GameUnit>,
+    tex_coords: [Vector2<TileUnit>; 4],
+    children: Vec<ObjectNode>,
 }

@@ -4,9 +4,9 @@ use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering;
 use sarosa_net::messages::Direction;
 use events::{
-    UserEventType,
-    UserEventState,
-    UserEvent,
+    CommandKind,
+    CommandState,
+    CommandEvent,
 };
 use sarosa_net::messages::Order;
 
@@ -27,31 +27,30 @@ impl CommandStates {
         }
     }
 
-    pub fn inject(&mut self, command: UserEventType, reset: bool) {
+    pub fn inject(&mut self, command: CommandKind, reset: bool) {
         let max_value = max(max(max(self.up, self.down), self.left), self.right);
         if reset {
             let old_value = match command {
-                UserEventType::CmdUp => {
+                CommandKind::Up => {
                     let old_value = self.up;
                     self.up = 0;
                     old_value
                 }
-                UserEventType::CmdDown => {
+                CommandKind::Down => {
                     let old_value = self.down;
                     self.down = 0;
                     old_value
                 }
-                UserEventType::CmdLeft => {
+                CommandKind::Left => {
                     let old_value = self.left;
                     self.left = 0;
                     old_value
                 }
-                UserEventType::CmdRight => {
+                CommandKind::Right => {
                     let old_value = self.right;
                     self.right = 0;
                     old_value
                 }
-                _ => return,
             };
 
             if self.up    > old_value { self.up    = self.up    - 1 }
@@ -60,11 +59,10 @@ impl CommandStates {
             if self.right > old_value { self.right = self.right - 1 }
         } else {
             match command {
-                UserEventType::CmdUp => self.up = max_value + 1,
-                UserEventType::CmdDown => self.down = max_value + 1,
-                UserEventType::CmdLeft => self.left = max_value + 1,
-                UserEventType::CmdRight => self.right = max_value + 1,
-                _ => return,
+                CommandKind::Up => self.up = max_value + 1,
+                CommandKind::Down => self.down = max_value + 1,
+                CommandKind::Left => self.left = max_value + 1,
+                CommandKind::Right => self.right = max_value + 1,
             }
         }
     }
@@ -79,43 +77,39 @@ impl CommandStates {
     }
 }
 
-pub struct UserEventSender {
+pub struct CommandEventSender {
     commands_states: CommandStates,
     this_player_id: Arc<AtomicUsize>,
 }
 
-impl UserEventSender {
+impl CommandEventSender {
 
-    pub fn new(player_id: Arc<AtomicUsize>) -> UserEventSender {
-        UserEventSender {
+    pub fn new(player_id: Arc<AtomicUsize>) -> CommandEventSender {
+        CommandEventSender {
             this_player_id: player_id,
             commands_states: CommandStates::new(),
         }
     }
 
-    pub fn prepare_event_consumer(&mut self) -> UserEventConsumer {
+    pub fn prepare_event_consumer(&mut self) -> CommandEventConsumer {
         let id = self.this_player_id.load(Ordering::Relaxed);
-        UserEventConsumer {
+        CommandEventConsumer {
             s: self,
             player_id: id,
         }
     }
 }
 
-pub struct UserEventConsumer<'a> {
-    s: &'a mut UserEventSender,
+pub struct CommandEventConsumer<'a> {
+    s: &'a mut CommandEventSender,
     pub player_id: usize,
 }
 
-impl<'a> UserEventConsumer<'a> {
+impl<'a> CommandEventConsumer<'a> {
 
-    pub fn consume_event(&mut self, ue: UserEvent) -> Order {
-        let reset = ue.state != UserEventState::Start;
-        let command = match ue.kind {
-            UserEventType::Quit => unreachable!(),
-            kind => kind,
-        };
-        self.s.commands_states.inject(command, reset);
+    pub fn consume_event(&mut self, ue: CommandEvent) -> Order {
+        let reset = ue.state != CommandState::Start;
+        self.s.commands_states.inject(ue.kind, reset);
         Order::Walk(self.s.commands_states.next_direction())
     }
 }

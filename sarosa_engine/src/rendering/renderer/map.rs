@@ -11,7 +11,6 @@ use glium::index::{
 };
 use glium::draw_parameters::DrawParameters;
 use glium::texture::Texture2dArray;
-use glium::VertexBuffer;
 use glium::Frame;
 
 use models::game::GameData;
@@ -22,8 +21,6 @@ use unit::GAME_UNIT_TO_PX;
 
 pub struct MapRenderer {
     program: Program,
-    vertex_buffer: VertexBuffer<shaders::map::Vertex>,
-    index_buffer: IndexBuffer<u32>,
     texture: Texture2dArray,
 }
 

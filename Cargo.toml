@@ -3,10 +3,13 @@
 name = "sarosa"
 version = "0.0.1"
 authors = [
-        "Nemikolh",
-        "Vaelden <maugan.villatel@gmail.com>",
+    "Nemikolh",
+    "Vaelden <maugan.villatel@gmail.com>",
 ]
 build = "build.rs"
+
+[features]
+profiler = ["sarosa_engine/profiler"]
 
 [dependencies]
 log4rs = "*"
@@ -16,4 +19,3 @@ rustc-serialize = "0.3"
 [dependencies.sarosa_engine]
 path = "./sarosa_engine"
 version = "=0.0.1"
-features = ["profiler"]

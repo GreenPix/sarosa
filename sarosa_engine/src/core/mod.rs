@@ -3,8 +3,8 @@ use num::traits::Zero;
 
 use events::{
     EventSystem,
-    UserEventType,
-    UserEventState
+    CommandKind,
+    CommandState
 };
 use models::game::GameData;
 use models::player::{
@@ -105,11 +105,11 @@ impl GameInstance {
 
     fn event_update(&mut self, event_sys: &EventSystem) -> LoopState {
         for &e in event_sys.iter() {
-            if e.state == UserEventState::Start {
+            if e.state == CommandState::Start {
                 match e.kind {
-                    UserEventType::Quit => return LoopState::Break,
-                    UserEventType::ZoomIn => self.world_scene.camera().zoom_in(),
-                    UserEventType::ZoomOut => self.world_scene.camera().zoom_out(),
+                    CommandKind::Quit => return LoopState::Break,
+                    CommandKind::ZoomIn => self.world_scene.camera().zoom_in(),
+                    CommandKind::ZoomOut => self.world_scene.camera().zoom_out(),
                     _ => (),
                 }
             }

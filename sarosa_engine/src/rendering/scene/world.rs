@@ -1,18 +1,14 @@
-
-use cgmath::Matrix4;
-
-use models::game::GameData;
 use rendering::camera::Camera;
+use rendering::scene::WorldScene;
+use models::game::GameData;
 
-pub struct WorldScene {
-    camera: Camera,
-}
 
 impl WorldScene {
 
-    pub fn new() -> WorldScene {
+    pub fn new(window: &Window, game_data: &GameData) -> WorldScene {
         WorldScene {
-            camera: Camera::new()
+            camera: Camera::new(),
+            map: Map::new(window, game_data),
         }
     }
 

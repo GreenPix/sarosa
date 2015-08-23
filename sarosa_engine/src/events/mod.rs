@@ -6,65 +6,73 @@ use std::collections::hash_map::Entry::*;
 
 #[derive(Default)]
 pub struct EventSystem {
-    queue: Vec<UserEvent>,
-    seen_events: HashMap<UserEventType, UserEvent>,
+    app_events: Vec<AppEvent>,
+    command_events: Vec<CommandEvent>,
+    seen_events: HashMap<CommandKind, CommandEvent>,
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-pub enum UserEventState {
+pub enum AppEvent {
+    WinResized { width: u32, height: u32 },
+    ZoomIn,
+    ZoomOut,
+    Quit,
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+pub enum CommandState {
     Start,
     Stop
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-pub struct UserEvent {
-    pub state: UserEventState,
-    pub kind: UserEventType,
+pub struct CommandEvent {
+    pub state: CommandState,
+    pub kind: CommandKind,
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-pub enum UserEventType {
-    Quit,
-    CmdUp,
-    CmdDown,
-    CmdLeft,
-    CmdRight,
-    ZoomIn,
-    ZoomOut,
+pub enum CommandKind {
+    Up,
+    Down,
+    Left,
+    Right,
+}
+
+impl EventSystem {
+    pub fn iter_cmds(&self) -> {
+        self.queue.filter_map()
+    }
+
+    pub fn clear(&mut self) {
+        self.clear_cmds();
+        self.clear_();
+    }
+
+    pub fn clear_cmds(&mut self) {
+        self.command_events.clear();
+    }
 }
 
 
 pub trait PushEvent {
-    fn push(&mut self, e: UserEvent);
+    fn push_cmd(&mut self, e: CommandEvent);
+    fn push_app(&mut self, e: AppEvent);
 }
 
 impl PushEvent for EventSystem {
-    fn push(&mut self, e: UserEvent) {
+    fn push_cmd(&mut self, e: CommandEvent) {
         match self.seen_events.entry(e.kind) {
             Occupied(mut old_e) => {
                 if old_e.get().state != e.state {
-                    self.queue.push(e);
+                    self.command_events.push(e);
                     old_e.insert(e);
                 }
             }
             Vacant(free) => {
                 free.insert(e);
-                self.queue.push(e);
+                self.command_events.push(e);
             }
         }
-    }
-}
-
-impl Deref for EventSystem {
-    type Target = Vec<UserEvent>;
-
-    fn deref(&self) -> &Vec<UserEvent> {
-        &self.queue
-    }
-}
-
-impl DerefMut for EventSystem {
-    fn deref_mut(&mut self) -> &mut Vec<UserEvent> {
-        &mut self.queue
     }
 }

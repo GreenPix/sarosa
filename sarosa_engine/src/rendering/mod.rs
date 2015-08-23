@@ -1,4 +1,4 @@
-use cgmath::{self, Matrix4};
+
 use glium::glutin;
 use glium::DisplayBuild;
 use glium::backend::glutin_backend::GlutinFacade;
@@ -8,10 +8,12 @@ use glium::glutin::{
 };
 use events::{
     PushEvent,
-    UserEvent,
-    UserEventType
+    CommandEvent,
+    CommandKind,
+    AppEvent,
 };
-use events::UserEventState::{
+use profiler::Profiler;
+use events::CommandState::{
     Start,
     Stop
 };
@@ -29,7 +31,6 @@ mod camera;
 pub struct Window {
     display: GlutinFacade,
     settings: Settings,
-    projection: Matrix4<f32>,
 }
 
 impl Window {
@@ -49,19 +50,7 @@ impl Window {
         Window {
             display: display,
             settings: settings,
-            projection: Window::ortho(width, height)
         }
-    }
-
-    fn ortho(width: u32, height: u32) -> Matrix4<f32> {
-        let w = width as f32;
-        let h = height as f32;
-        let m = cgmath::ortho(- w / 2.0, w / 2.0, - h / 2.0, h / 2.0, -1.0, 1.0);
-        m
-    }
-
-    fn projection(&self) -> &Matrix4<f32> {
-        &self.projection
     }
 
     pub fn set_title(&self, title: &str) {
@@ -74,12 +63,12 @@ impl Window {
         let keyboard = self.settings.keyboard();
         for event in self.display.poll_events() {
             let e = match event {
-                Event::Closed => Some(UserEvent{
+                Event::Closed => Some(CommandEvent{
                     state: Start,
-                    kind: UserEventType::Quit
+                    kind: CommandKind::Quit
                 }),
                 Event::Resized(width, height) => {
-                    self.projection  = Window::ortho(width, height);
+                    event_sys.push_app(AppEvent::WinResized { width: width, height: height });
                     None
                 }
                 //KeyboardInput(ElementState, u8, Option<VirtualKeyCode>)
@@ -89,7 +78,7 @@ impl Window {
                         ElementState::Released => Stop,
                     };
                     if let Some(kind) = keyboard.get(key) {
-                        Some(UserEvent {
+                        Some(CommandEvent {
                             state: s,
                             kind: kind,
                         })

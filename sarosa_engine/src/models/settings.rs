@@ -11,7 +11,7 @@ use std::cell::{
 use glium::glutin::{
     VirtualKeyCode
 };
-use events::UserEventType;
+use events::CommandKind;
 
 #[derive(Debug, Clone)]
 pub struct Settings {
@@ -21,7 +21,7 @@ pub struct Settings {
 }
 
 #[derive(Debug)]
-pub struct KeyboardSettings(HashMap<VirtualKeyCode, UserEventType>);
+pub struct KeyboardSettings(HashMap<VirtualKeyCode, CommandKind>);
 
 #[derive(Debug)]
 pub struct WindowSettings {
@@ -105,18 +105,18 @@ impl KeyboardSettings {
         //
         // TODO(Nemikolh): Read that config from a settings file.
         //
-        hm.insert(VirtualKeyCode::Up, UserEventType::CmdUp);
-        hm.insert(VirtualKeyCode::Down, UserEventType::CmdDown);
-        hm.insert(VirtualKeyCode::Left, UserEventType::CmdLeft);
-        hm.insert(VirtualKeyCode::Right, UserEventType::CmdRight);
-        hm.insert(VirtualKeyCode::I, UserEventType::ZoomIn);
-        hm.insert(VirtualKeyCode::O, UserEventType::ZoomOut);
+        hm.insert(VirtualKeyCode::Up, CommandKind::Up);
+        hm.insert(VirtualKeyCode::Down, CommandKind::Down);
+        hm.insert(VirtualKeyCode::Left, CommandKind::Left);
+        hm.insert(VirtualKeyCode::Right, CommandKind::Right);
+        hm.insert(VirtualKeyCode::I, CommandKind::ZoomIn);
+        hm.insert(VirtualKeyCode::O, CommandKind::ZoomOut);
         //
         ///////////////////////////////////////////////////////////////
         KeyboardSettings(hm)
     }
 
-    pub fn get(&self, key: Option<VirtualKeyCode>) -> Option<UserEventType> {
+    pub fn get(&self, key: Option<VirtualKeyCode>) -> Option<CommandKind> {
         if let Some(k) = key {
             self.0.get(&k).map(|e| *e)
         } else {

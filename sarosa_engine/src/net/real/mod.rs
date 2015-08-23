@@ -13,8 +13,8 @@ use sarosa_net::net::{
     NetworkError,
 };
 use events::{
-    UserEvent,
-    UserEventType
+    CommandEvent,
+    CommandKind
 };
 use models::settings;
 use sarosa_net::messages::EntityOrder;
@@ -24,7 +24,7 @@ use net::{
 };
 
 use self::reader::ServerEventReader;
-use self::sender::UserEventSender;
+use self::sender::CommandEventSender;
 mod reader;
 mod sender;
 
@@ -48,7 +48,7 @@ impl RemoteServer {
         }
     }
 
-    pub fn start_writer_thread(&mut self, rx_user: Receiver<UserEvent>, tx_error_writer: Sender<()>) {
+    pub fn start_writer_thread(&mut self, rx_user: Receiver<CommandEvent>, tx_error_writer: Sender<()>) {
 
         let player_id = self.this_player_id.clone();
         if let Some(mut writer) = mem::replace(&mut self.writer, None) {
@@ -56,7 +56,7 @@ impl RemoteServer {
                 .name("Network - Writer".to_string())
                 .spawn(move|| {
 
-                let mut sender = UserEventSender::new(player_id);
+                let mut sender = CommandEventSender::new(player_id);
 
                 'run: loop {
 
@@ -64,7 +64,7 @@ impl RemoteServer {
                     let mut converter = sender.prepare_event_consumer();
 
                     while let Ok(ue) = rx_user.try_recv() {
-                        if let UserEventType::Quit = ue.kind {
+                        if let CommandKind::Quit = ue.kind {
                             break 'run;
                         }
 

@@ -17,7 +17,11 @@ pub use self::core::GameLoop;
 pub use self::core::GameInstance;
 
 pub mod models;
-pub mod loader;
+
+// TODO(Nemikolh):
+//  When warning are off, swicth to a public loader.
+//pub mod loader;
+mod loader;
 
 mod core;
 mod net;

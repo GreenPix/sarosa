@@ -14,11 +14,11 @@ use cgmath::Vector2;
 use animation::TextureId;
 use models::player::THIS_PLAYER;
 use events::{
-    UserEventType,
-    UserEvent,
+    CommandKind,
+    CommandEvent,
 };
-use events::UserEventType::*;
-use events::UserEventState::*;
+use events::CommandKind::*;
+use events::CommandState::*;
 
 use super::ServerEvent;
 use super::RemoteServerHandle;
@@ -31,12 +31,12 @@ struct FakeServerForReal {
 
 impl FakeServerForReal {
 
-    fn event_update(&mut self, user_event: UserEvent) {
+    fn event_update(&mut self, user_event: CommandEvent) {
         let speed = match user_event {
-            UserEvent { state: Start, kind: CmdUp }     => Vector2::new(0f32,  1f32),
-            UserEvent { state: Start, kind: CmdDown }   => Vector2::new(0f32, -1f32),
-            UserEvent { state: Start, kind: CmdLeft }   => Vector2::new(-1f32, 0f32),
-            UserEvent { state: Start, kind: CmdRight }  => Vector2::new( 1f32, 0f32),
+            CommandEvent { state: Start, kind: Up }     => Vector2::new(0f32,  1f32),
+            CommandEvent { state: Start, kind: Down }   => Vector2::new(0f32, -1f32),
+            CommandEvent { state: Start, kind: Left }   => Vector2::new(-1f32, 0f32),
+            CommandEvent { state: Start, kind: Right }  => Vector2::new( 1f32, 0f32),
             _ => Vector2::zero(),
         };
         let factor = Vector2::new(0.5f32, 0.5f32);
@@ -84,7 +84,7 @@ impl RemoteServer {
         }
     }
 
-    pub fn start_writer_thread(&mut self, rx_user: Receiver<UserEvent>, _: Sender<()>) {
+    pub fn start_writer_thread(&mut self, rx_user: Receiver<CommandEvent>, _: Sender<()>) {
 
         let arc_mutex_crazy_frog = self.data.clone();
         thread::Builder::new()
@@ -98,7 +98,7 @@ impl RemoteServer {
                     let mut server = arc_mutex_crazy_frog.lock().unwrap();
                     while let Ok(ue) = rx_user.try_recv() {
                         match ue.kind {
-                            UserEventType::Quit => {
+                            CommandKind::Quit => {
                                 break 'run;
                             }
                             _ => {
