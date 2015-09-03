@@ -11,7 +11,10 @@ use std::cell::{
 use glium::glutin::{
     VirtualKeyCode
 };
-use events::CommandKind;
+use events::{
+    CommandKind,
+    AppEvent,
+};
 
 #[derive(Debug, Clone)]
 pub struct Settings {
@@ -21,7 +24,13 @@ pub struct Settings {
 }
 
 #[derive(Debug)]
-pub struct KeyboardSettings(HashMap<VirtualKeyCode, CommandKind>);
+pub struct KeyboardSettings(HashMap<VirtualKeyCode, EventKeyMapped>);
+
+#[derive(Debug, Eq, PartialEq)]
+pub enum EventKeyMapped {
+    App(AppEvent),
+    Cmd(CommandKind)
+}
 
 #[derive(Debug)]
 pub struct WindowSettings {
@@ -105,18 +114,18 @@ impl KeyboardSettings {
         //
         // TODO(Nemikolh): Read that config from a settings file.
         //
-        hm.insert(VirtualKeyCode::Up, CommandKind::Up);
-        hm.insert(VirtualKeyCode::Down, CommandKind::Down);
-        hm.insert(VirtualKeyCode::Left, CommandKind::Left);
-        hm.insert(VirtualKeyCode::Right, CommandKind::Right);
-        hm.insert(VirtualKeyCode::I, CommandKind::ZoomIn);
-        hm.insert(VirtualKeyCode::O, CommandKind::ZoomOut);
+        hm.insert(VirtualKeyCode::Up, EventKeyMapped::Cmd(CommandKind::Up));
+        hm.insert(VirtualKeyCode::Down, EventKeyMapped::Cmd(CommandKind::Down));
+        hm.insert(VirtualKeyCode::Left, EventKeyMapped::Cmd(CommandKind::Left));
+        hm.insert(VirtualKeyCode::Right, EventKeyMapped::Cmd(CommandKind::Right));
+        hm.insert(VirtualKeyCode::I, EventKeyMapped::App(AppEvent::ZoomIn));
+        hm.insert(VirtualKeyCode::O, EventKeyMapped::App(AppEvent::ZoomOut));
         //
         ///////////////////////////////////////////////////////////////
         KeyboardSettings(hm)
     }
 
-    pub fn get(&self, key: Option<VirtualKeyCode>) -> Option<CommandKind> {
+    pub fn get(&self, key: Option<VirtualKeyCode>) -> Option<EventKeyMapped> {
         if let Some(k) = key {
             self.0.get(&k).map(|e| *e)
         } else {

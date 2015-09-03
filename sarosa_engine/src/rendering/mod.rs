@@ -17,7 +17,10 @@ use events::CommandState::{
     Start,
     Stop
 };
-use Settings;
+use models::settings::{
+    EventKeyMapped,
+    Settings
+};
 
 pub use self::renderer::GameRenderer;
 
@@ -62,11 +65,8 @@ impl Window {
     pub fn poll_events(&mut self, event_sys: &mut PushEvent) {
         let keyboard = self.settings.keyboard();
         for event in self.display.poll_events() {
-            let e = match event {
-                Event::Closed => Some(CommandEvent{
-                    state: Start,
-                    kind: CommandKind::Quit
-                }),
+            match event {
+                Event::Closed => event_sys.push_app(AppEvent::Quit),
                 Event::Resized(width, height) => {
                     event_sys.push_app(AppEvent::WinResized { width: width, height: height });
                     None
@@ -78,19 +78,17 @@ impl Window {
                         ElementState::Released => Stop,
                     };
                     if let Some(kind) = keyboard.get(key) {
-                        Some(CommandEvent {
-                            state: s,
-                            kind: kind,
-                        })
-                    } else {
-                        None
+                        match kind {
+                            EventKeyMapped::Cmd(c) => event_sys.push_cmd(CommandEvent {
+                                state: s,
+                                kind: kind,
+                            }),
+                            EventKeyMapped::App(a) => event_sys.push_app(a),
+                        }
                     }
                 }
-                _ => None,
+                _ => (),
             };
-            if let Some(e) = e {
-                event_sys.push(e);
-            }
         }
     }
 }

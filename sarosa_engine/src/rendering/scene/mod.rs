@@ -12,18 +12,20 @@ pub mod builder;
 mod render;
 // Module related to the `update` calls triggered by the viewport changes
 mod update;
+// Module related to geometry computations
+mod geometry;
 
 /// The game unit is 8 * PixelUnit
 /// it is used by the position.
-pub type GameUnit = f32,
+pub type GameUnit = f32;
 
 /// The tile unit is 16 * PixelUnit
 /// it is also twice more as the GameUnit.
-pub type TileUnit = u32,
+pub type TileUnit = u32;
 
 /// The PixelUnit is the unit used before
 /// applying the camera transformation.
-pub type PixelUnit = u32,
+pub type PixelUnit = u32;
 
 /// The world scene is the root of the rendering state.
 /// It contains the camera and the map.
@@ -37,10 +39,6 @@ pub struct WorldScene {
 /// rendering.
 pub struct Map {
 
-    // The size of a tile. As of today, it should always be 16.
-    // This value should never change once the Map has been created.
-    tile_size: PixelUnit,
-
     // The width of the map in tile unit.
     // This value should never change once the Map has been created.
     width: TileUnit,
@@ -49,13 +47,17 @@ pub struct Map {
     // This value should never change once the Map has been created.
     height: TileUnit,
 
+    // The viewport of the map storing all the attributes needed
+    // to update the VertexBuffer when the camera moves.
+    viewport: MapViewport,
+
     // Object layer. This layer is sorted using the -y axis.
     // It has also special properties.
     objects: ObjectLayer,
 
     // Basic tiles layers. Usually, the size should be one, that is
     // the ground layer. If there's more they're sorted by depth.
-    tiles: SmallVec<[TileLayerWithDepth; 2]>,
+    layers: SmallVec<[TileLayerWithDepth; 2]>,
 
     // Vertices for the chunk contained inside the viewport
     vertices: VertexBuffer<Vertex>,
@@ -74,6 +76,26 @@ pub struct Map {
     // The height of each chipset.
     chipset_height: TileUnit,
 }
+
+/// The map viewport represent the part of the map
+/// that is rendered on screen. It stores information to detect
+/// when the buffers should be updated because of a camera change.
+struct MapViewport {
+    // The size of a tile. As of today, it should always be 16.
+    // This value should never change once the Map has been created.
+    tile_size: PixelUnit,
+
+    // The position of the viewport
+    x: TileUnit,
+    y: TileUnit,
+
+    // Size of the viewport
+    width: TileUnit,
+    height: TileUnit,
+}
+
+const MAP_VIEWPORT_UPDATE_RANGE: u32 = 5;
+
 
 /// The TileLayer and the depth value associated to it.
 /// XXX:
@@ -111,13 +133,13 @@ pub struct ObjectLayer {
 ///     In that respect, the data layout is really easy to use.
 ///
 ///   * Generating an `Object` directly is hard. The reason lies in the previous comment.
-///     If you need to generate one, this should always be done through `loader::ObjectTree`.
+///     If you need to generate one, have a look at the `loader::ObjectTree` class.
 ///     If an additional feature need to be provided, it is more likely than the change
 ///     needs to be done on the `loader::ObjectTree` itself.
 ///
 pub struct Object {
     // This information is unique per instance:
-    // and the array is sorted by -y axis.
+    // and the array is sorted by -y axis (no longer applicable)
     inst_attr: VertexBuffer<ObjInstAttr>,
     // Each instance of the object use those vertices:
     vertices: VertexBuffer<VertexObj>,

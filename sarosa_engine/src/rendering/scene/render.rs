@@ -10,6 +10,7 @@ use glium::program::Program;
 use glium::Frame;
 use glium::DrawParameters;
 use glium::VertexBuffer;
+use glium::index::IndexBufferSlice;
 use glium::index::IndexBuffer;
 use glium::texture::Texture2dArray;
 use glium::draw_parameters::DepthTest;
@@ -26,13 +27,14 @@ impl Map {
 
     fn render(&self, target: &mut Frame, program: &Program, mvp: &Matrix4<f32>) {
 
-        for layer in self.tiles.iter() {
+        for layer in self.layers.iter() {
+            let nb_tiles = self.viewport.width * self.viewport.height;
             layer.render(
                 target,
                 program,
                 mvp,
                 &self.vertices,
-                &self.indices,
+                &self.indices.slice(0 .. nb_tiles * 6).unwrap(),
                 &self.chipsets_texture
             );
         }
@@ -47,12 +49,12 @@ impl Map {
 
 impl TileLayerWithDepth {
 
-    fn render(&self,
+    fn render<'a>(&self,
         target: &mut Frame,
         program: &Program,
         mvp: &Matrix4<f32>,
         vertices: &VertexBuffer<Vertex>,
-        indices: &IndexBuffer<u32>,
+        indices: &IndexBufferSlice<'a, u32>,
         texture: &Texture2dArray)
     {
         self.0.render(
@@ -68,12 +70,12 @@ impl TileLayerWithDepth {
 
 impl TileLayer {
 
-    fn render(&self,
+    fn render<'a>(&self,
         target: &mut Frame,
         program: &Program,
         mvp: &Matrix4<f32>,
         vertices: &VertexBuffer<Vertex>,
-        indices: &IndexBuffer<u32>,
+        indices: &IndexBufferSlice<'a, u32>,
         texture: &Texture2dArray)
     {
         use glium::uniforms::MagnifySamplerFilter::Nearest;

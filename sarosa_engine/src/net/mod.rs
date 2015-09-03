@@ -130,7 +130,7 @@ impl Server {
     }
 
     pub fn event_update(&mut self, event_sys: &EventSystem) {
-        for &e in event_sys.iter() {
+        for &e in event_sys.iter_cmds() {
             let _ = self.tx.send(e);
         }
     }
