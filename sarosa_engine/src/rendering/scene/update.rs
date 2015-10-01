@@ -1,6 +1,14 @@
 use rendering::scene::Vertex;
 use rendering::scene::Map;
+use rendering::camera::Camera;
+
 use Window;
+use glium::VertexBuffer;
+use glium::backend::glutin_backend::GlutinFacade;
+use glium::index::{
+    PrimitiveType,
+    IndexBuffer
+};
 
 impl Map {
 
@@ -74,8 +82,16 @@ impl Map {
 
 impl TileLayerWithDepth {
 
-    pub fn update(&mut self, i_min: u32, i_max: u32, j_min: u32, j_max: u32, window: &Window) {
+    fn update(&mut self, i_min: u32, i_max: u32, j_min: u32, j_max: u32, window: &Window) {
+        self.0.update(i_min, i_max, j_min, j_max, window);
+    }
+}
+
+impl TileLayer {
+
+    fn update(&mut self, i_min: u32, i_max: u32, j_min: u32, j_max: u32, window: &Window) {
 
         let ref display = window.display;
+
     }
 }

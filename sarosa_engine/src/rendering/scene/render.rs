@@ -1,9 +1,11 @@
 use rendering::scene::Map;
+use rendering::scene::WorldScene;
 use rendering::scene::TileLayerWithDepth;
 use rendering::scene::TileLayer;
 use rendering::scene::ObjectLayer;
 use rendering::scene::Object;
 use rendering::scene::Vertex;
+use rendering::camera::Camera;
 
 use cgmath::Matrix4;
 use glium::program::Program;
@@ -80,6 +82,8 @@ impl TileLayer {
     {
         use glium::uniforms::MagnifySamplerFilter::Nearest;
         use glium::uniforms::MinifySamplerFilter::NearestMipmapNearest;
+        use glium::BlendingFunction::Addition;
+        use glium::LinearBlendingFactor::{SourceAlpha, OneMinusSourceAlpha};
 
         let uniforms = uniform! {
             mvp: *mvp,
@@ -112,6 +116,9 @@ impl ObjectLayer {
         program: &Program,
         mvp: &Matrix4<f32>)
     {
+        use glium::BlendingFunction::Addition;
+        use glium::LinearBlendingFactor::{SourceAlpha, OneMinusSourceAlpha};
+
         let draw_parameters = DrawParameters {
             blending_function: Some(
                 Addition { source: SourceAlpha, destination: OneMinusSourceAlpha }
