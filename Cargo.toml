@@ -15,6 +15,7 @@ profiler = ["sarosa_engine/profiler"]
 log4rs = "*"
 docopt = "0.6.*"
 rustc-serialize = "0.3"
+smallvec = "*"
 
 [dependencies.sarosa_engine]
 path = "./sarosa_engine"

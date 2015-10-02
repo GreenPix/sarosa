@@ -93,52 +93,11 @@ impl MapRenderer {
             //     let y = (num / width) as i64 - (height / 2) as i64;
             //     let position: (f32, f32) = (x as f32 * 16., y as f32 * 16.);
             //
-            //     sprite[0].i_position[0] = position.0 - half_tile;
-            //     sprite[0].i_position[1] = position.1 + half_tile;
-            //     sprite[0].i_tex_id = absolute_tex_id;
-            //     sprite[1].i_position[0] = position.0 + half_tile;
-            //     sprite[1].i_position[1] = position.1 + half_tile;
-            //     sprite[1].i_tex_id = absolute_tex_id;
-            //     sprite[2].i_position[0] = position.0 - half_tile;
-            //     sprite[2].i_position[1] = position.1 - half_tile;
-            //     sprite[2].i_tex_id = absolute_tex_id;
-            //     sprite[3].i_position[0] = position.0 + half_tile;
-            //     sprite[3].i_position[1] = position.1 - half_tile;
-            //     sprite[3].i_tex_id = absolute_tex_id;
-            //
-            //     ib_data.push(num * 4);
-            //     ib_data.push(num * 4 + 1);
-            //     ib_data.push(num * 4 + 2);
-            //     ib_data.push(num * 4 + 1);
-            //     ib_data.push(num * 4 + 3);
-            //     ib_data.push(num * 4 + 2);
-            // }
 
             (vb, IndexBuffer::new(display, PrimitiveType::TrianglesList, &ib_data).unwrap())
         };
 
         self.vertex_buffer = vertex_buffer;
         self.index_buffer = index_buffer;
-    }
-
-    pub fn render(&self, target: &mut Frame, mvp: &Matrix4<f32>, draw_parameters: &DrawParameters) {
-
-        use glium::uniforms::MagnifySamplerFilter::Nearest;
-        use glium::uniforms::MinifySamplerFilter::NearestMipmapNearest;
-
-        let uniforms = uniform! {
-            mvp: *mvp,
-            tex: self.texture.sampled()
-                .minify_filter(NearestMipmapNearest)
-                .magnify_filter(Nearest)
-        };
-
-        target.draw(
-            &self.vertex_buffer,
-            &self.index_buffer,
-            &self.program,
-            &uniforms,
-            &draw_parameters
-        ).unwrap();
     }
 }

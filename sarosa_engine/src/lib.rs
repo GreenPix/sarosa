@@ -9,6 +9,7 @@ extern crate glutin;
 extern crate cgmath;
 extern crate image;
 extern crate num;
+extern crate smallvec;
 
 pub use self::models::settings::Settings;
 pub use self::rendering::Window;

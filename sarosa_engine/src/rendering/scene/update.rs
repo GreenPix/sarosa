@@ -1,5 +1,7 @@
 use rendering::scene::Vertex;
 use rendering::scene::Map;
+use rendering::scene::TileLayerWithDepth;
+use rendering::scene::TileLayer;
 use rendering::camera::Camera;
 
 use Window;
@@ -68,12 +70,12 @@ impl Map {
 
         for num in 0..nb_tiles {
 
-            ib_data.push(num * 4);
-            ib_data.push(num * 4 + 1);
-            ib_data.push(num * 4 + 2);
-            ib_data.push(num * 4 + 1);
-            ib_data.push(num * 4 + 3);
-            ib_data.push(num * 4 + 2);
+            indices.push(num * 4);
+            indices.push(num * 4 + 1);
+            indices.push(num * 4 + 2);
+            indices.push(num * 4 + 1);
+            indices.push(num * 4 + 3);
+            indices.push(num * 4 + 2);
         }
 
         self.indices = IndexBuffer::new(display, PrimitiveType::TrianglesList, &indices).unwrap()

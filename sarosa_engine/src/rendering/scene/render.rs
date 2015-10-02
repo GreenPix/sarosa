@@ -16,18 +16,26 @@ use glium::index::IndexBufferSlice;
 use glium::index::IndexBuffer;
 use glium::texture::Texture2dArray;
 use glium::draw_parameters::DepthTest;
+use glium::uniforms::MagnifySamplerFilter::Nearest;
+use glium::uniforms::MinifySamplerFilter::NearestMipmapNearest;
+use glium::BlendingFunction::Addition;
+use glium::LinearBlendingFactor::{SourceAlpha, OneMinusSourceAlpha};
 
 impl WorldScene {
 
-    pub fn render(&self, target: &mut Frame, program: &Program) {
+    pub fn render(&self, target: &mut Frame) {
 
-        self.map.render(target, program, self.camera.as_uniform());
+        let mvp = self.camera.as_uniform();
+        self.map.render(target, mvp);
+        self.entities.render(target, mvp);
     }
 }
 
 impl Map {
 
-    fn render(&self, target: &mut Frame, program: &Program, mvp: &Matrix4<f32>) {
+    fn render(&self, target: &mut Frame, mvp: &Matrix4<f32>) {
+
+        let ref program = self.program;
 
         for layer in self.layers.iter() {
             let nb_tiles = self.viewport.width * self.viewport.height;
@@ -80,10 +88,6 @@ impl TileLayer {
         indices: &IndexBufferSlice<'a, u32>,
         texture: &Texture2dArray)
     {
-        use glium::uniforms::MagnifySamplerFilter::Nearest;
-        use glium::uniforms::MinifySamplerFilter::NearestMipmapNearest;
-        use glium::BlendingFunction::Addition;
-        use glium::LinearBlendingFactor::{SourceAlpha, OneMinusSourceAlpha};
 
         let uniforms = uniform! {
             mvp: *mvp,
@@ -116,9 +120,6 @@ impl ObjectLayer {
         program: &Program,
         mvp: &Matrix4<f32>)
     {
-        use glium::BlendingFunction::Addition;
-        use glium::LinearBlendingFactor::{SourceAlpha, OneMinusSourceAlpha};
-
         let draw_parameters = DrawParameters {
             blending_function: Some(
                 Addition { source: SourceAlpha, destination: OneMinusSourceAlpha }
@@ -142,9 +143,6 @@ impl Object {
         mvp: &Matrix4<f32>,
         draw_parameters: &DrawParameters)
     {
-        use glium::uniforms::MagnifySamplerFilter::Nearest;
-        use glium::uniforms::MinifySamplerFilter::NearestMipmapNearest;
-
         let uniforms = uniform! {
             mvp: *mvp,
             tex: self.frames_texture.sampled()
@@ -158,6 +156,37 @@ impl Object {
             program,
             &uniforms,
             draw_parameters
+        );
+    }
+}
+
+impl Entities {
+
+    fn render(&self,
+        target: &mut Frame,
+        mvp: &Matrix4<f32>)
+    {
+        let draw_parameters = DrawParameters {
+            blending_function: Some(
+                Addition { source: SourceAlpha, destination: OneMinusSourceAlpha }
+            ),
+            depth_test: DepthTest::IfLess,
+            depth_write: true,
+            .. Default::default()
+        };
+
+        let uniforms = uniform! {
+            mvp: *mvp,
+            tex: self.skins_texture.sampled()
+                .minify_filter(NearestMipmapNearest)
+                .magnify_filter(Nearest)
+        };
+
+        target.draw(
+            &self.vertices,
+            &self.indices,
+            &uniforms,
+            &draw_parameters
         );
     }
 }

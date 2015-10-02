@@ -1,8 +1,10 @@
 
 use cgmath::Vector2;
 use glium::VertexBuffer;
+use glium::program::Program;
 use glium::index::IndexBuffer;
 use glium::texture::Texture2dArray;
+use smallvec::SmallVec;
 
 use rendering::camera::Camera;
 
@@ -32,6 +34,31 @@ pub type PixelUnit = u32;
 pub struct WorldScene {
     camera: Camera,
     map: Map,
+    entities: Entities,
+}
+
+/// The list of entities to render. As is, we will render all
+/// the entity present on the scene. This can be quite inefficient.
+/// However, it may be okay to handle that problem at a higher
+/// level instead of doing it here.
+struct Entities {
+    // Program to render the entities. This means that only one shader
+    // is applied to all the entity. Will that be okay ?
+    program: Program,
+
+    // The square for each entity.
+    vertices: VertexBuffer<VertexObj>,
+
+    // The indices for the entities vertices.
+    indices: IndexBuffer<u16>,
+
+    // The possible skins for the entities. Note that
+    // with this implementation they must be all of the same size.
+    // TODO: Fix that at some point
+    skins_texture: Texture2dArray,
+
+    // The current number of entities. (To avoid doing a reallocation on each mapping)
+    nb_entities: usize,
 }
 
 /// The `Map` object in scene contains all
@@ -64,6 +91,9 @@ pub struct Map {
 
     // Indices for the chunk contained inside the viewport
     indices: IndexBuffer<u32>,
+
+    // Program for the map
+    program: Program,
 
     // Chipset used by this map (combined into an array):
     // This imply that all chipset used by the map must be of the

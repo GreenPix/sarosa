@@ -9,16 +9,13 @@ use glium::draw_parameters::LinearBlendingFactor::{
 use Window;
 use models::game::GameData;
 use rendering::scene::WorldScene;
-use self::map::MapRenderer;
 use self::players::PlayersRenderer;
 
 mod shaders;
-mod map;
 mod players;
 
 pub struct GameRenderer {
     players_renderer: PlayersRenderer,
-    map_renderer: MapRenderer,
 }
 
 impl GameRenderer {
@@ -27,7 +24,6 @@ impl GameRenderer {
 
         GameRenderer {
             players_renderer: PlayersRenderer::new(window),
-            map_renderer: MapRenderer::new(window),
         }
     }
 
@@ -57,7 +53,7 @@ impl GameRenderer {
         };
 
         // Clear the screen
-        target.clear_color(0.0, 0.0, 0.0, 1.0); //target.clear_color(0.11, 0.31, 0.11, 1.0);
+        target.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 1.0);
 
         // Draw the map
         self.map_renderer.render(&mut target, &transform, &draw_parameters);

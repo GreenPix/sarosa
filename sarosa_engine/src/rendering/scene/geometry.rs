@@ -1,4 +1,7 @@
+use rendering::scene::MapViewport;
 use rendering::scene::MAP_VIEWPORT_UPDATE_RANGE;
+
+use rendering::camera::Camera;
 
 impl MapViewport {
 
