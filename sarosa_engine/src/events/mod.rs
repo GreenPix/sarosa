@@ -31,6 +31,7 @@ pub enum UserEventType {
     CmdRight,
     ZoomIn,
     ZoomOut,
+    Attack
 }
 
 

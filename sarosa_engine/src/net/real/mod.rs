@@ -12,6 +12,7 @@ use sarosa_net::net::{
     NetworkSettings,
     NetworkError,
 };
+use sarosa_net::messages::Order;
 use events::{
     UserEvent,
     UserEventType
@@ -67,12 +68,17 @@ impl RemoteServer {
                         if let UserEventType::Quit = ue.kind {
                             break 'run;
                         }
-
-                        let order = EntityOrder {
-                            entity: converter.player_id as u64,
-                            order: converter.consume_event(ue),
+                        let order = if let UserEventType::Attack = ue.kind {
+                            Order::Attack
+                        } else {
+                            converter.consume_event(ue)
                         };
-                        match writer.write(&order) {
+
+                        let order_event = EntityOrder {
+                            entity: converter.player_id as u64,
+                            order: order
+                        };
+                        match writer.write(&order_event) {
                             Err(e) => {
                                 debug!("io::Error {}", e);
                                 break 'run;

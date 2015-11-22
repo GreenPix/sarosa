@@ -111,6 +111,7 @@ impl KeyboardSettings {
         hm.insert(VirtualKeyCode::Right, UserEventType::CmdRight);
         hm.insert(VirtualKeyCode::I, UserEventType::ZoomIn);
         hm.insert(VirtualKeyCode::O, UserEventType::ZoomOut);
+        hm.insert(VirtualKeyCode::Space, UserEventType::Attack);
         //
         ///////////////////////////////////////////////////////////////
         KeyboardSettings(hm)
