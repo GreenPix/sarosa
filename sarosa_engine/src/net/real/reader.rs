@@ -35,7 +35,7 @@ impl ServerEventReader  {
                 }
                 None
             }
-            NewEntity { entity, position: Vec2d { x, y }, skin } => {
+            NewEntity { entity, position: Vec2d { x, y }, skin, pv } => {
                 debug!("New  player: {}", entity);
                 if let &Some(me) = &self.local_copy_player_id {
                     if me == entity {
@@ -59,7 +59,7 @@ impl ServerEventReader  {
                 debug!("Player has quit: {}", entity);
                 Some(ServerEvent::PlayerHasQuit(entity))
             }
-            Position { entity, position, speed } => {
+            Position { entity, position, speed, pv } => {
                 let xf = position.x;
                 let yf = position.y;
                 //Vector2::new(0f32, 0.001f32);
