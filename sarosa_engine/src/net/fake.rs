@@ -1,5 +1,6 @@
 extern crate rand;
 
+use std::time::Duration;
 use std::thread;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
@@ -8,7 +9,7 @@ use std::iter;
 use std::iter::Once;
 use std::sync::Mutex;
 
-use num::traits::Zero;
+use cgmath::Vector;
 use cgmath::Vector2;
 
 use animation::TextureId;
@@ -40,12 +41,12 @@ impl FakeServerForReal {
             _ => Vector2::zero(),
         };
         let factor = Vector2::new(0.5f32, 0.5f32);
-        self.speed = self.speed + factor * speed;
+        self.speed = &self.speed + &(&factor * &speed);
     }
 
     fn event_iter(&mut self) -> Once<ServerEvent> {
         let approx_dt = Vector2::new(0.02, 0.02);
-        self.current_player_pos = self.current_player_pos + approx_dt * self.speed;
+        self.current_player_pos = &self.current_player_pos + &(&approx_dt * &self.speed);
 
         if self.first_event {
             self.first_event = false;
@@ -108,7 +109,7 @@ impl RemoteServer {
                     }
                 }
 
-                thread::sleep_ms(30u32);
+                thread::sleep(Duration::from_millis(30));
             }
         }).expect("Couldn't start thread");
     }
@@ -132,7 +133,7 @@ impl RemoteServer {
                     }
                 }
 
-                thread::sleep_ms(20u32);
+                thread::sleep(Duration::from_millis(20));
             }
         }).expect("Couldn't start thread");
     }

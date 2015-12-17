@@ -1,6 +1,7 @@
 
 use super::clock_ticks;
 
+use std::time::Duration;
 use std::thread;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::channel;
@@ -46,7 +47,7 @@ impl<R> DeferredLoader<R>
             actions(now - previous_clock);
 
             previous_clock = now;
-            thread::sleep_ms(8);
+            thread::sleep(Duration::from_millis(8));
         }
     }
 }

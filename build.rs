@@ -1,5 +1,3 @@
-#![feature(result_expect)]
-
 use std::env;
 use std::fs::File;
 use std::io::Write;

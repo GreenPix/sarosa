@@ -11,6 +11,7 @@ use glium::index::{
 };
 use glium::draw_parameters::DrawParameters;
 use glium::texture::Texture2dArray;
+use glium::texture::RawImage2d;
 use glium::VertexBuffer;
 use glium::Frame;
 
@@ -41,7 +42,11 @@ impl MapRenderer {
             // TODO(Nemikolh): Use a ResourceManager to load
             // them before being here and do something clever with it.
             let images = vec![
-                image::open("./assets/maps/tiles.png").unwrap(),
+                {
+                    let img = image::open("./assets/maps/tiles.png").unwrap().to_rgba();
+                    let dims = img.dimensions();
+                    RawImage2d::from_raw_rgba_reversed(img.into_raw(), dims)
+                }
             ];
 
             Texture2dArray::new(display, images).unwrap()
@@ -130,7 +135,7 @@ impl MapRenderer {
         use glium::uniforms::MinifySamplerFilter::NearestMipmapNearest;
 
         let uniforms = uniform! {
-            mvp: *mvp,
+            mvp: Into::<[[f32; 4]; 4]>::into(*mvp),
             tex: self.texture.sampled()
                 .minify_filter(NearestMipmapNearest)
                 .magnify_filter(Nearest)

@@ -10,6 +10,7 @@ use glium::index::{
 use glium::draw_parameters::DrawParameters;
 use glium::texture::Texture2dArray;
 use glium::VertexBuffer;
+use glium::texture::RawImage2d;
 use glium::Frame;
 
 use models::game::GameData;
@@ -38,8 +39,16 @@ impl PlayersRenderer {
             // TODO(Nemikolh): Use a ResourceManager to load
             // them before being here and do something clever with it.
             let images = vec![
-                image::open("./assets/players/Kiwan.png").unwrap(),
-                image::open("./assets/players/Vurf.png").unwrap()
+                {
+                    let img = image::open("./assets/players/Kiwan.png").unwrap().to_rgba();
+                    let dims = img.dimensions();
+                    RawImage2d::from_raw_rgba_reversed(img.into_raw(), dims)
+                },
+                {
+                    let img = image::open("./assets/players/Vurf.png").unwrap().to_rgba();
+                    let dims = img.dimensions();
+                    RawImage2d::from_raw_rgba_reversed(img.into_raw(), dims)
+                }
             ];
 
             Texture2dArray::new(display, images).unwrap()
@@ -130,7 +139,7 @@ impl PlayersRenderer {
         let ib_slice = self.index_buffer.slice(0 .. sprites * 6).unwrap();
 
         let uniforms = uniform! {
-            mvp: *mvp,
+            mvp: Into::<[[f32; 4]; 4]>::into(*mvp),
             tex: self.texture.sampled()
                 .minify_filter(NearestMipmapNearest)
                 .magnify_filter(Nearest)

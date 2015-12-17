@@ -1,6 +1,7 @@
 use cgmath::Vector2;
 use cgmath::Matrix4;
 use cgmath::Matrix;
+use cgmath::SquareMatrix;
 use unit::GAME_UNIT_TO_PX;
 
 pub struct Camera {

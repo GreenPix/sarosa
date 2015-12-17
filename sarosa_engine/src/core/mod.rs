@@ -1,5 +1,5 @@
 use cgmath::Vector2;
-use num::traits::Zero;
+use cgmath::Vector;
 
 use events::{
     EventSystem,
