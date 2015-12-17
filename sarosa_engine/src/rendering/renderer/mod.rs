@@ -1,10 +1,6 @@
 use glium::Surface;
 use glium::draw_parameters::DrawParameters;
-use glium::draw_parameters::BlendingFunction::Addition;
-use glium::draw_parameters::LinearBlendingFactor::{
-    SourceAlpha,
-    OneMinusSourceAlpha,
-};
+use glium::draw_parameters::Blend;
 
 use Window;
 use models::game::GameData;
@@ -44,15 +40,13 @@ impl GameRenderer {
     pub fn render(&self, world_scene: &WorldScene, window: &mut Window) {
 
         // Compute the projection matrix:
-        let transform = (*window.projection()) * (*world_scene.transform());
+        let transform = window.projection() * world_scene.transform();
 
         // Preparing the frame
         let mut target = window.display.draw();
 
         let draw_parameters = DrawParameters {
-            blending_function: Some(
-                Addition { source: SourceAlpha, destination: OneMinusSourceAlpha }
-            ),
+            blend: Blend::alpha_blending(),
             .. Default::default()
         };
 

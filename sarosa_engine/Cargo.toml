@@ -23,7 +23,7 @@ optional = true
 
 [dependencies.glium]
 version = "*"
-features = ["glutin", "image", "cgmath"]
+features = ["glutin"]
 default-features = false
 
 [dependencies.sarosa-net]

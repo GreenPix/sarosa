@@ -1,7 +1,6 @@
 use std::slice::Iter;
 use cgmath::Vector2;
-use num::traits::Zero;
-
+use cgmath::Vector;
 use models::player::Player;
 use models::player::THIS_PLAYER;
 use models::player::PlayerId;

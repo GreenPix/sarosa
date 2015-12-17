@@ -1,6 +1,7 @@
 use std::mem;
 use std::sync::atomic::AtomicUsize;
 use std::thread;
+use std::time::Duration;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 use std::sync::Arc;
@@ -96,7 +97,7 @@ impl RemoteServer {
                         _ => (),
                     }
 
-                    thread::sleep_ms(30u32);
+                    thread::sleep(Duration::from_millis(30));
                 }
 
                 // Tell main thread we're going to shutdown.
@@ -139,7 +140,7 @@ impl RemoteServer {
                         }
                     }
 
-                    thread::sleep_ms(8u32);
+                    thread::sleep(Duration::from_millis(8));
                 }
 
                 let _ = tx_serv.send(ServerEvent::DisconnectedFromServer);

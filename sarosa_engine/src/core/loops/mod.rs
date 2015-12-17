@@ -1,6 +1,7 @@
 extern crate clock_ticks;
 
 use std::thread;
+use std::time::Duration;
 
 use events::EventSystem;
 use profiler::Profiler;
@@ -85,7 +86,7 @@ impl GameLoop {
             p.leave();
 
 
-            thread::sleep_ms(((FIXED_TIME_STAMP - lag) / 1000000) as u32);
+            thread::sleep(Duration::from_millis(((FIXED_TIME_STAMP - lag) / 1000000) as u64));
             p.end_frame();
         }
 
