@@ -71,7 +71,8 @@ mod private {
             for _ in 0..indent {
                 print!(" ");
             }
-            let avg = self.total_times.iter().sum::<u64>() / (self.total_times.len() as u64);
+            let avg = self.total_times.iter()
+                .fold(0, |sum, i| sum + i) / (self.total_times.len() as u64);
             println!("{name} - avg({avg}), +{max}/-{min}",
                 name = self.name,
                 avg = Nanoseconds(avg),
