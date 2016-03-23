@@ -40,15 +40,20 @@ impl PlayersRenderer {
             // them before being here and do something clever with it.
             let images = vec![
                 {
-                    let img = image::open("./assets/players/Kiwan.png").unwrap().to_rgba();
+                    let img = image::open("./assets/players/Vurf.png").unwrap().to_rgba();
                     let dims = img.dimensions();
                     RawImage2d::from_raw_rgba_reversed(img.into_raw(), dims)
                 },
                 {
-                    let img = image::open("./assets/players/Vurf.png").unwrap().to_rgba();
+                    let img = image::open("./assets/players/frost.png").unwrap().to_rgba();
                     let dims = img.dimensions();
                     RawImage2d::from_raw_rgba_reversed(img.into_raw(), dims)
-                }
+                },
+                {
+                    let img = image::open("./assets/players/Kiwan.png").unwrap().to_rgba();
+                    let dims = img.dimensions();
+                    RawImage2d::from_raw_rgba_reversed(img.into_raw(), dims)
+                },
             ];
 
             Texture2dArray::new(display, images).unwrap()

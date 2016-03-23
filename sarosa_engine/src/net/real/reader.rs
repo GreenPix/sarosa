@@ -35,20 +35,20 @@ impl ServerEventReader  {
                 }
                 None
             }
-            NewEntity { entity, position: Vec2d { x, y }, skin, pv } => {
+            NewEntity { entity, position: Vec2d { x, y }, skin, .. } => {
                 debug!("New  player: {}", entity);
                 if let &Some(me) = &self.local_copy_player_id {
                     if me == entity {
                         Some(ServerEvent::NewPlayer {
                             initial_pos: Vector2::new(x, y),
                             id: THIS_PLAYER,
-                            tex_id: TextureId((skin % 2) as u32),
+                            tex_id: TextureId((skin % 3) as u32),
                         })
                     } else {
                         Some(ServerEvent::NewPlayer {
                             initial_pos: Vector2::new(x, y),
                             id: entity,
-                            tex_id: TextureId((skin % 2) as u32),
+                            tex_id: TextureId((skin % 3) as u32),
                         })
                     }
                 } else {
@@ -59,7 +59,11 @@ impl ServerEventReader  {
                 debug!("Player has quit: {}", entity);
                 Some(ServerEvent::PlayerHasQuit(entity))
             }
-            Position { entity, position, speed, pv } => {
+            Say { entity, message } => {
+                debug!("Player {} says: {}", entity, message);
+                None
+            }
+            Position { entity, position, speed, .. } => {
                 let xf = position.x;
                 let yf = position.y;
                 //Vector2::new(0f32, 0.001f32);
