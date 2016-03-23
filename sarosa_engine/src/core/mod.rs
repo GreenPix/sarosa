@@ -40,6 +40,7 @@ pub struct GameDataRefMut<'a> {
 impl<'a> GameDataRefMut<'a> {
 
     pub fn add_player(&mut self, id: PlayerId, initial_pos: Vector2<f32>, tex_id: TextureId) {
+        debug!("Player id: {:?}", tex_id);
         let player = Player::new(initial_pos, Vector2::zero(), tex_id, self.anim_manager);
         let is_new = self.game_data.add_player(id, player);
         self.should_require_gpu_init |= is_new;

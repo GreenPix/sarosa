@@ -42,13 +42,13 @@ impl ServerEventReader  {
                         Some(ServerEvent::NewPlayer {
                             initial_pos: Vector2::new(x, y),
                             id: THIS_PLAYER,
-                            tex_id: TextureId((skin % 2) as u32),
+                            tex_id: TextureId((skin % 3) as u32),
                         })
                     } else {
                         Some(ServerEvent::NewPlayer {
                             initial_pos: Vector2::new(x, y),
                             id: entity,
-                            tex_id: TextureId((skin % 2) as u32),
+                            tex_id: TextureId((skin % 3) as u32),
                         })
                     }
                 } else {
@@ -58,6 +58,10 @@ impl ServerEventReader  {
             EntityHasQuit { entity } => {
                 debug!("Player has quit: {}", entity);
                 Some(ServerEvent::PlayerHasQuit(entity))
+            }
+            Say { entity, message } => {
+                debug!("Player {} says: {}", entity, message);
+                None
             }
             Position { entity, position, speed, pv } => {
                 let xf = position.x;

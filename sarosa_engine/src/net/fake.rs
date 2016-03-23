@@ -53,7 +53,7 @@ impl FakeServerForReal {
             iter::once(ServerEvent::NewPlayer {
                 initial_pos: self.current_player_pos,
                 id: THIS_PLAYER,
-                tex_id: TextureId(rand::random::<u32>() % 2),
+                tex_id: TextureId(rand::random::<u32>() % 3),
             })
         } else {
             iter::once(ServerEvent::Position {
