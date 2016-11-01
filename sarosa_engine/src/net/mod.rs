@@ -34,7 +34,11 @@ pub enum ServerError {
     Disconnected,
 }
 
-enum ServerEvent {
+// This shouldn't needed to be pub.
+// Only children modules should be able to
+// see this Type. This is sad that this
+// type logic has changed...
+pub enum ServerEvent {
     DisconnectedFromServer,
     NewPlayer {
         initial_pos: Vector2<f32>,

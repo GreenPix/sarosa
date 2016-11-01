@@ -5,6 +5,7 @@ extern crate glutin;
 extern crate cgmath;
 extern crate image;
 extern crate num;
+#[macro_use] extern crate approx;
 
 pub use self::models::settings::Settings;
 pub use self::rendering::Window;

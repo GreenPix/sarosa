@@ -1,6 +1,5 @@
 use cgmath::Vector2;
-use cgmath::ApproxEq;
-use cgmath::EuclideanVector;
+use cgmath::InnerSpace;
 use super::FRAMES_PER_TEXTURE;
 use super::SubTextureId;
 use super::OldAnimator;
@@ -46,13 +45,13 @@ impl PlayerAnimator {
         time_elapsed: u64,
         speed: &Vector2<f32>)
     {
-        if speed.length2().approx_eq(&0f32) {
+        if ulps_eq!(speed.magnitude2(), &0f32) {
             let idle_frame = anim_manager.get_idle_frame(&self.current_animator);
             self.idle_frame = Some(idle_frame);
         } else {
             self.idle_frame = None;
             anim_manager.update_animator(&mut self.current_animator, &speed);
-            self.current_animator.next_frame(time_elapsed, speed.length());
+            self.current_animator.next_frame(time_elapsed, speed.magnitude());
         }
     }
 }

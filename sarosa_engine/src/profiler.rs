@@ -23,7 +23,7 @@ mod private {
     use self::hprof::ProfileNode;
     use std::fmt::{self, Display, Formatter};
     use std::mem;
-    use std::borrow::Borrow;
+    //use std::borrow::Borrow;
     use std::rc::Rc;
 
     struct TimingNode {
