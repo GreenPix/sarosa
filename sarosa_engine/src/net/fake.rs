@@ -9,7 +9,7 @@ use std::iter;
 use std::iter::Once;
 use std::sync::Mutex;
 
-use cgmath::Vector;
+use cgmath::{Zero, ElementWise};
 use cgmath::Vector2;
 
 use animation::TextureId;
@@ -41,12 +41,12 @@ impl FakeServerForReal {
             _ => Vector2::zero(),
         };
         let factor = Vector2::new(0.5f32, 0.5f32);
-        self.speed = &self.speed + &(&factor * &speed);
+        self.speed = &self.speed + &factor.mul_element_wise(speed);
     }
 
     fn event_iter(&mut self) -> Once<ServerEvent> {
         let approx_dt = Vector2::new(0.02, 0.02);
-        self.current_player_pos = &self.current_player_pos + &(&approx_dt * &self.speed);
+        self.current_player_pos = &self.current_player_pos + &approx_dt.mul_element_wise(self.speed);
 
         if self.first_event {
             self.first_event = false;
